@@ -1,0 +1,55 @@
+
+/* new clearfix */
+.clearfix:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+    }
+* html .clearfix             { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+
+/* layout */
+
+.wpce-column {
+    float: left;
+    width: 210px;
+    text-align: center;
+}
+.wpce-double-column {
+    margin-left: 10px;
+    width: 400px;
+}
+
+#side-sortables .wpce-column {
+    width: 100%;
+    margin: 0;
+}
+
+/* form fields */
+
+.wpce-centered {
+    display: block;
+    margin: 10px 0 6px;
+    font-weight: bold;
+}
+.wpce-textarea, .wpce-urlfield {
+    width: 398px;
+}
+
+#side-sortables .wpce-textarea, #side-sortables .wpce-urlfield {
+    width: 188px;
+}
+
+/* jQuery ui datepicker */
+
+#wp-custom-events-info .ui-datepicker {
+    margin: 0 auto;
+    font-size: 0.9em;
+    line-height: 1em;
+}
+#wp-custom-events-info .ui-datepicker td {
+    font-size: 1.2em;
+}

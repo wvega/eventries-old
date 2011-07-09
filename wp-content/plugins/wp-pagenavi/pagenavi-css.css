@@ -1,0 +1,60 @@
+/*
+Default style for WP-PageNavi plugin
+
+http://wordpress.org/extend/plugins/wp-pagenavi/
+*/
+
+div.wp-pagenavi {
+	text-align:right;
+	padding:5px 10px;
+	overflow:hidden;
+}
+div.wp-pagenavi a, div.wp-pagenavi span.pages, div.wp-pagenavi span.current {
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	display:inline-block;
+}
+div.wp-pagenavi a, div.wp-pagenavi a:link, div.wp-pagenavi a:visited, div.wp-pagenavi a:active {
+	padding:4px 8px;
+	margin:0 2px;
+}
+.wp-pagenavi a{
+    border:1px solid #edf1f5;
+    color:#969696;
+    text-decoration:none;
+    -webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+}
+div.wp-pagenavi a:hover {
+	background-color:#59a5d1;
+	border:1px solid #408bb6;
+	color:#fff;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+}
+div.wp-pagenavi span.pages {
+	line-height:normal;
+	padding:4px 8px;
+	font-weight:bold;
+	float:left;
+	color:#fff;
+	background-color:#59a5d1;
+	border:1px solid #408bb6;
+	margin:2px 0 0 0;
+}
+div.wp-pagenavi .page {
+	padding:4px 8px;
+}
+div.wp-pagenavi span.current {
+	padding: 4px 8px;
+	margin: 2px;
+	font-size:20px;
+	font-weight: bold;
+	color:#3E3E3E;
+}
+div.wp-pagenavi span.extend {
+	padding: 2px 4px;
+	margin: 2px;
+	background:none;
+}
+

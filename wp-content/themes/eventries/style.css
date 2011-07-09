@@ -1,0 +1,149 @@
+/*
+Theme Name: Eventries
+Theme URI: http://eventries.com/
+Description: The them for Eventries community
+Author: Andrés Bedoya
+Version: 1.0
+Tags: 
+*/
+
+*{margin:0;padding:0;}
+
+img,abbr{border:0;}
+
+body{background:#86C9EF;font-family:verdana,sans-serif;height:100%;}
+
+#header,#search,#contenido,#sidebar{position:relative;}
+
+#wrapper{width:980px;margin:0 auto;}
+
+#header{height:90px;width:980px;}
+
+#main{background-color:#fff;padding:0 20px;-moz-border-radius-topleft:20px;-moz-border-radius-topright:20px;}
+	#head{border-bottom:1px dotted #bbb;padding:20px 0;}
+	#head h1{color:#3E3E3E;font-size:36px;font-family:Arial, Helvetica, sans-serif;}
+	#intro{color:#969696;font-size:18px;padding-top:10px;}
+	
+	#logo{width:450px;float:left;}
+	
+	#search{background-color:#222;float:right;padding:12px;width:500px;-moz-border-radius-bottomleft:20px;-moz-border-radius-bottomright:20px;}
+	#search ul#maintop{float:left;}
+	#search ul#maintop li{float:left;list-style-type:none;}
+	#search ul#maintop li a{color:#fff;display:block;font-size:13px;block;padding:9px;text-decoration:none;}
+	#search ul#maintop li a:hover{color:#86C9EF;}
+	#searchform{float:right;}
+    #search label{display:none;}
+    #search .text{border:none;padding:8px;width:230px;font-size:14px;-moz-border-radius:15px;-webkit-border-radius:15px;}
+    #search .submit{background:transparent url(images/search.png) no-repeat top left;border:0;cursor:pointer;height:29px;position:absolute;right:14px;top:14px;overflow:hidden;text-indent:-999em;width:29px;}
+
+#wrap{overflow:hidden;}
+	#contenido{float:left;margin:20px 30px 0 0;width:610px;}
+	.hentry{margin-bottom:32px;}
+ 	.hentry .entry-title{font-size:24px;}
+	.hentry .entry-title a{color:#3e3e3e;text-decoration:none;}
+	.hentry .entry-content{color:#666;font-size:14px;margin-top:9px;}
+	.hentry .entry-content ul{padding:15px 0 0 32px;}
+	.hentry .entry-content p{padding-top:15px;}
+	.hentry .entry-content a{color:#2786C2;}
+	.hentry .entry-content a:hover{text-decoration:none;}
+	
+	h2#search-title{margin-bottom:32px;}
+	
+#sidebar{float:left;margin:20px 0 0 0;width:300px;}
+	#sendevent{background-color:#9FC54E;font-size:23px;padding:9px;text-align:center;-moz-border-radius:9px;-webkit-border-radius:9px;}
+	#sendevent a{color:#fff;text-decoration:none;}
+	
+	.sidebox{margin-top:12px;position:relative;}
+	.item-title{color:#fff;display: block;font-size:11px;height:25px;line-height:25px;margin:0;padding-left:8px;text-align:left;width:300px;}
+	    .oranges{background-color:#FC575E;}
+	    .yellows{background-color:#FBCA54;}
+	.nipple{border-style:solid solid none;border-width:6px 6px 0;height:0;left:16px;position:absolute;top:24px;width:0;z-index:2;}
+	.nippleo{border-color:#FC575E transparent;}
+	.nippley{border-color:#FBCA54 transparent;}
+	.item-content h4{font-size:13px;padding-top:9px;}
+	.item-content h4 a, .item-content p a{color:#2786C2;text-decoration:none;}
+	.item-content h4 a:hover,.item-content p a:hover{text-decoration:underline;}
+	.item-content p{font-size:11px;padding:4px 0 8px;}
+	.item-content ul#categorievents{margin-bottom:20px;}
+	.item-content ul#categorievents li{list-style:none;border-bottom:1px dotted #333;padding:8px 0;}
+	.item-content ul#categorievents li:last-child{border:none;}
+	.item-content ul#categorievents li .cat_icon{background-image:url(images/cat_icons.png);float:right;height:60px;margin-left:9px;width:60px;}
+	.item-content ul#categorievents li a{color:#2786C2;}
+	.item-content ul#categorievents li a:hover{color:#f75342;}
+	.item-content ul#categorievents li p{color:#3e3e3e;font-size:11px;line-height:16px;}
+	.item-content ul#categorievents li h4{font-size:13px;margin-bottom:2px;}
+	a#tech_cat .cat_icon{background-position:0 0;}
+	a#tech_cat:hover .cat_icon{background-position:-60px 0;}
+	a#academic_cat .cat_icon{background-position:0 -60px;}
+	a#academic_cat:hover .cat_icon{background-position:-60px -60px;}
+	a#culture_cat .cat_icon{background-position:0 -120px;}
+	a#culture_cat:hover .cat_icon{background-position:-60px -120px;}
+	
+	#eventspro{background-color:#222;font-size:11px;margin-bottom:20px;-moz-border-radius:9px;-webkit-border-radius:9px;}
+	#eventspro a{color:#8CC63E;text-decoration:none;}
+	#eventspro a:hover{text-decoration:underline;s}
+	#eventspro #arriba{border-bottom:1px dotted #3C3C3C;height:60px;}
+	#eventspro .contenido{overflow:hidden;padding:9px 15px;}
+	#eventspro img.logo{display:block;float:left;width:120px;}
+	#eventspro p.intro{color:#fff;display:block;float:left;margin-left:10px;text-align:center;width:140px;}
+	#eventspro #abajo{color:#9F9F9F;}
+	#eventspro #abajo h4{color:#fff;font-weight:bold;margin:0 0 5px;}
+	#eventspro #abajo h4 #more{display:block;float:right;}
+	#eventspro #abajo #date{color:#969696;display:block;float:left;text-align:center;text-transform:uppercase;width:40px;}
+	#eventspro #abajo #date span{display:block;font-size:18px;}
+	#eventspro #abajo #feed{display:block;font-size:10px;float:left;margin-left:10px;width:220px;}
+	
+/*comentarios*/
+#comments{border-top:1px dotted #ccc;margin-bottom:48px;padding-top:9px;}
+
+ol#commentlist{list-style-type:none;margin:20px 0;}
+ol#pinglist{padding:9px 0 0 0;font-size:12px;}
+ol#pinglist li{list-style-type:decimal;margin-left:21px;}
+ol#commentlist li{background-color:#f1f1f1;overflow:hidden;padding:5px;margin:9px 0;-moz-border-radius:5px;-webkit-border-radius:5px;}
+.comment-author{float:left;margin-right:9px;width:170px;-moz-border-radius:5px;-webkit-border-radius:5px;}
+.comment-bot{width:600px;}
+.comment-author .avatar{float:left;height:30px;margin:1px 10px 0 0;width:30px;}
+.comment-author .commentauthor{display:block;font-size:12px;font-weight:bold;}
+.comment-author .commentauthor a,.comment-bot a{color:#277cc3;text-decoration:none;}
+.comment-author .commentauthor a:hover,.comment-bot a:hover{color:#333;text-decoration:underline;}
+.comment-author .commentdata{font-size:10px;}
+.comment-author .commentdata a{color:#333;}
+.comment-author .commentdata a:hover{text-decoration:none;}
+.comment-content{float:left;width:410px;}
+.comment-content p{font-size:13px;}
+
+.comm-reply{margin-top:5px;float:right;}
+.comm-reply a{background-color:#ccc;color:#333;font-size:12px;padding:3px;-moz-border-radius:5px;-webkit-border-radius:5px;}
+
+#respond{width:610px;}
+#respond h3{font-size:18px;font-weight:bold;margin-bottom:12px;}
+#respond p{margin: 0 0 8px;overflow:hidden;}
+#respond p span{width:291px;}
+#respond p span#left{float:left;}
+#respond p span#right{float:right;margin:0 0 0 18px;}
+#respond p span input{width:280px;}
+#respond p label{display:block;font-size:13px;margin:0 0 4px;}
+#respond p input,#respond p textarea{background-color:#fafafa;border:1px solid #ccc;padding:5px 3px;width:600px;-moz-border-radius:5px;-webkit-border-radius:5px;}
+#respond #submit,#suscribirse input#buttonsus{background-color:#59a5d1;border:1px solid #408BB6;color:#fff;padding:5px;-moz-border-radius:5px;-webkit-border-radius:5px;width:90px;}
+#respond #submit:hover{cursor:pointer;}
+#approve{color:#d80000;font-size:12px;padding-top:12px;}
+#logged{}
+#userlog{text-align:right;font-size:12px;}
+#userlog a{color:#2786C2;}
+
+/*contact coldform*/
+div#coldform *{padding:0;margin:0;}
+div#coldform{font-size:12px;margin:11px 0;width:550px;color:#333;}
+div#coldform fieldset{border:0 none;display:block;clear:both;}
+div#coldform legend.hide{display:none;}
+div#coldform label.label{text-align:right;display:block;padding:3px 0;margin:3px 0;width:200px;clear:left;float:left;}
+input#coldform_carbon {margin:0 0 -7px 7px;}
+div#coldform textarea#coldform_message,div#coldform input.input{background-color:#fafafa;border:1px solid #ccc;margin:3px 11px;font-size:12px;display:block;padding:3px;width:300px;float:left;-moz-border-radius:5px;-webkit-border-radius:5px;}
+div#coldform input.submit{background-color:#ccc;border:0 none;margin:3px 0 13px 160px;display:block;padding:5px;width:90px;float:left;text-shadow:1px 1px 1px #fff;-moz-border-radius:5px;-webkit-border-radius:5px;}
+div#coldform input.submit:hover{background-color:#eee;cursor:pointer;}
+	
+#footer{}
+	#footer ul{padding:20px 0;}
+	#footer ul li {background-color:#F6F6EA;color:#A4A4A4;font-size:10px;height:23px;line-height:23px;margin-bottom:1px;padding:0 10px;list-style:none;}
+	#footer ul li a{color:#2786C2;text-decoration:none;}
+	#footer ul li a:hover{color:#f75342;}
