@@ -2,7 +2,7 @@
 
 class All_in_One_SEO_Pack {
 	
- 	var $version = "1.6.12.2";
+ 	var $version = "1.6.13.3";
  	
  	/** Max numbers of chars in auto-generated description */
  	var $maximum_description_length = 160;
@@ -304,7 +304,7 @@ if (function_exists('load_plugin_textdomain')) {
 				if (!isset($description_format) || empty($description_format)) {
 					$description_format = "%description%";
 				}
-				$description = str_replace('%description%', $description, $description_format);
+				$description = str_replace('%description%', apply_filters('aioseop_description_override', $description), $description_format);
 				$description = str_replace('%blog_title%', get_bloginfo('name'), $description);
 				$description = str_replace('%blog_description%', get_bloginfo('description'), $description);
 				$description = str_replace('%wp_title%', $this->get_original_title(), $description);
@@ -1446,9 +1446,12 @@ if (function_exists('load_plugin_textdomain')) {
 ?>
 	<div id="dropmessage" class="updated" style="display:none;"></div>
 	<div class="wrap">
+		
 		<h2><?php _e('All in One SEO Plugin Options', 'all_in_one_seo_pack'); ?></h2>
 		by <strong>Michael Torbert</strong> of <strong>Semper Fi Web Design</strong>
 		<p>
+			<div style="float:left;">
+			
 		<?php //_e("This is version ", 'all_in_one_seo_pack') ?><?php //_e("$this->version ", 'all_in_one_seo_pack') ?>
 &nbsp;<a target="_blank" title="<?php _e('All in One SEO Plugin Release History', 'all_in_one_seo_pack')?>"
 href="http://semperfiwebdesign.com/documentation/all-in-one-seo-pack/all-in-one-seo-pack-release-history/"><?php _e("Changelog", 'all_in_one_seo_pack')?>
@@ -1456,13 +1459,28 @@ href="http://semperfiwebdesign.com/documentation/all-in-one-seo-pack/all-in-one-
 | <a target="_blank" title="<?php _e('FAQ', 'all_in_one_seo_pack') ?>"
 href="http://semperfiwebdesign.com/documentation/all-in-one-seo-pack/all-in-one-seo-faq/"><?php _e('FAQ', 'all_in_one_seo_pack') ?></a>
 | <a target="_blank" title="<?php _e('All in One SEO Plugin Support Forum', 'all_in_one_seo_pack') ?>"
-href="http://semperfiwebdesign.com/portfolio/wordpress/wordpress-plugins/forum/"><?php _e('Support', 'all_in_one_seo_pack') ?></a>
+href="http://semperfiwebdesign.com/forum/"><?php _e('Support', 'all_in_one_seo_pack') ?></a>
 | <a target="_blank" title="<?php _e('All in One SEO Plugin Translations', 'all_in_one_seo_pack') ?>"
 href="http://semperfiwebdesign.com/documentation/all-in-one-seo-pack/translations-for-all-in-one-seo-pack/"><?php _e('Translations', 'all_in_one_seo_pack') ?></a>
 | <strong><a target="_blank" title="<?php _e('Pro Version', 'all_in_one_seo_pack') ?>"
 href="http://wpplugins.com/plugin/50/all-in-one-seo-pack-pro-version"><?php _e('UPGRADE TO PRO VERSION', 'all_in_one_seo_pack') ?></a></strong>
-<br />
+</div>
 
+<div style="float:left;width:370px;margin-left:10px;">
+	<form action="http://semperfiwebdesign.us1.list-manage.com/subscribe/post?u=794674d3d54fdd912f961ef14&amp;id=af0a96d3d9" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank">
+		<span>Join our mailing list for tips, tricks, and WordPress secrets.<em><strong>Sign up today and receive a free copy of the e-book 5 SEO Tips for WordPress</strong></em> ($39 value).</span>
+		<div>
+	<label for="mce-EMAIL">Email Address </label>
+	<input type="text" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+
+		
+			<input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="btn">
+			</div>
+	</form>
+	</div>
+	<div style="clear:both;">
+
+<br />
 <!--<div style="width:75%;background-color:yellow;">
 <em>Thank you for using <strong>All in One SEO Pack</strong> by <strong>Michael Torbert</strong> of <strong>Semper Fi Web Design</strong>.  If you like this plugin and find it useful, feel free to click the <strong>donate</strong> button or send me a gift from my <strong>Amazon wishlist</strong>.  Also, don't forget to follow me on <strong>Twitter</strong>.</em>
 </div>
@@ -1491,15 +1509,29 @@ href="http://twitter.com/michaeltorbert/"><img src="<?php //echo WP_PLUGIN_URL; 
 		<img src="<?php echo WP_PLUGIN_URL; ?>/all-in-one-seo-pack/images/twitter.jpg" alt="<?php _e('Follow Us on Twitter', 'all_in_one_seo_pack') ?>" />	</a>
 	</div>
 	
-	<div style="float:left;background-color:white;padding: 10px 10px 10px 10px;border: 1px solid #ddd;">
-		<div style="width:423px;height:130px;">
-			<h3>PageLines Themes</h3>
-			We would also like to recommend <a href="http://www.pagelines.com/wpthemes/" target="_blank">PageLines</a> for Professional WordPress Themes.  They are attractive, affordable, performance optimized CMS themes that integrate perfectly with All in One SEO Pack to put your professional website at the top of the rankings.
-		</div>
-		<a target="_blank" title="iBlogPro" href="http://www.pagelines.com/wpthemes/"><img src="<?php echo WP_PLUGIN_URL; ?>/all-in-one-seo-pack/images/iblogpro.jpg" alt="<?php _e('iBlogPro theme', 'all_in_one_seo_pack') ?>" /></a>
-		<a target="_blank" title="PageLines Themes" href="http://www.pagelines.com/wpthemes/"><img src="<?php echo WP_PLUGIN_URL; ?>/all-in-one-seo-pack/images/pagelines.jpg" alt="<?php _e('Pagelines Themes', 'all_in_one_seo_pack') ?>" /></a>
-		<a target="_blank" title="WhiteHouse" href="http://www.pagelines.com/wpthemes/"><img src="<?php echo WP_PLUGIN_URL; ?>/all-in-one-seo-pack/images/whitehouse.jpg" alt="<?php _e('WhiteHouse theme', 'all_in_one_seo_pack') ?>" /></a>
+	<div style="float:left;background-color:white;padding:10px;border:1px solid #ddd;">
+	<div style="width:423px;height:130px;">
+	<h3>Reliable WordPress Hosting</h3>
+	<p><a title="WebHostingHub.com" target="_blank"
+	href="http://ref.webhostinghub.com/scripts/click.php?ref_id=rsuog2&ad_id=54c8d95f">WebHostingHub.com</a>
+	is a true leader in WordPress hosting and configured for WordPress
+	blogs. Hub's account includes UNLIMITED Hosting, NO-DOWNTIME Transfer,
+	24/7 U.S. Support & 90-Day FULL Money Back.<br />
+	Check our <a title="WebHostingHub reviews" target="_blank"
+	href="http://webhostingrating.com/companies/web-hosting-hub/">customer
+	reviews</a> at WebHostingRating.com.</p>
 	</div>
+	<a title="WebHostingHub.com" target="_blank"
+	href="http://ref.webhostinghub.com/scripts/click.php?ref_id=rsuog2&ad_id=54c8d95f"><img
+	src="http://webhostingrating.com/images/hub_420_wordpress.png"
+	alt="WebHostingHub.com" width="420" height="53" border="0" /></a>
+	</div>
+
+<div style="clear:both;">
+
+<div style="float:left;width:387px;padding-top:1px;">
+		<a href="http://www.bestthinking.com/invitation/visibility"><img src="http://www.bestthinking.com/content/images/wordpressseoad4.gif" width="371px"></a>
+</div>
 
 	<div style="float:left;background-color:white;padding:10px 10px 10px 10px;border:1px solid #ddd"> 
 			<div style="width:423px;height:130px"> 
@@ -1509,6 +1541,25 @@ href="http://twitter.com/michaeltorbert/"><img src="<?php //echo WP_PLUGIN_URL; 
 			<a title="Backup WordPress Easily" href="http://pluginbuddy.com/wordpress-backup/" target="_blank"><img src="http://ithemes.com/graphics/ads/bb-AIO-ad.png" alt="Backup WordPress Easily"></a> 
     </div>
 
+
+		
+
+<!--
+	<div style="float:left;background-color:white;padding: 10px 10px 10px 10px;border: 1px solid #ddd;">
+		<div style="width:365px;height:130px;">
+			
+			<form action="http://semperfiwebdesign.us1.list-manage.com/subscribe/post?u=794674d3d54fdd912f961ef14&amp;id=af0a96d3d9" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank">
+				<span>Join our mailing list for tips, tricks, and WordPress secrets. Also receive discounts on top commercial plugins and themes.<br /><em><strong>Sign up today and receive a free copy of the e-book 5 SEO Tips for WordPress</strong></em>.</span>
+			<div class="mc-field-group">
+			<label for="mce-EMAIL">Email Address </label>
+			<input type="text" value="" name="EMAIL" class="required email" id="mce-EMAIL">
+			</div>
+				
+					<div><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="btn"></div>
+			</form>
+</div>
+</div>
+-->
 </div>
 <div style="clear:both";></div>
 <!--
@@ -2030,7 +2081,7 @@ _e('Check this if you want your enable AIOSEOP support for Custom Post Types on 
 </div>
 </td>
 </tr>
-
+<?php if( function_exists('get_post_types')){		?>
 <tr>
 <th scope="row" style="text-align:right; vertical-align:top;">
 <a style="cursor:pointer;" title="<?php _e('Click for Help!', 'all_in_one_seo_pack')?>" onclick="toggleVisibility('123_tip');">
@@ -2058,7 +2109,7 @@ _e('Choose which post types you want to have SEO columns on the edit.php screen.
 </div>
 </td>
 </tr>
-
+<?php } ?>
 <tr>
 <th scope="row" style="text-align:right; vertical-align:top;">
 <a style="cursor:pointer;" title="<?php _e('Click for Help!', 'all_in_one_seo_pack')?>" onclick="toggleVisibility('aiosp_use_categories_tip');">

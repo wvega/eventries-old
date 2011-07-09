@@ -1,7 +1,5 @@
 nbproject/*
 sitemap.xml*
-wp-admin/error_log
-wp-config.php
 wp-content/uploads/*
 .project
 .settings

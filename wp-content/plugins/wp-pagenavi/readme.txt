@@ -1,25 +1,19 @@
 === WP-PageNavi ===
 Contributors: GamerZ, scribu
-Donate link: http://lesterchan.net/wordpress
+Donate link: http://lesterchan.net/site/donation/
 Tags: navigation, pagination, paging, pages
 Requires at least: 2.8
-Tested up to: 3.0
-Stable tag: trunk
+Tested up to: 3.1
+Stable tag: 2.74
 
-Adds a more advanced paging navigation to your WordPress site.
+Adds a more advanced paging navigation interface.
 
 == Description ==
 
 [PHP5 is required since version 2.70](http://scribu.net/wordpress/wp-pagenavi/wp-2-70.html)
 
-Adds a more advanced paging navigation to your WordPress site.
+Replaces the basic *&larr; Older posts | Newer posts &rarr;* links with a more advanced paging navigation interface.
 
-Example:
-
-	Pages (17): [1] 2 3 4 » ... Last »
-
-
-<br>
 Links: [Demo](http://lesterchan.net/wordpress/) | [Plugin News](http://scribu.net/wordpress/wp-pagenavi/) | [Translating](http://scribu.net/wordpress/translating-plugins.html)
 
 == Installation ==
@@ -31,9 +25,20 @@ You can either install it automatically from the WordPress admin, or do it manua
 
 = Usage =
 
-1. Open `wp-content/themes/your-theme-name/footer.php`
-2. Add anywhere: `<?php wp_pagenavi(); ?>`
-3. Go to *WP-Admin -> Settings -> PageNavi* to configure WP-PageNavi.
+In your theme, replace code like this:
+
+`
+<div class="navigation">
+	<div class="nav-previous"><?php next_posts_link( __( '<span class="meta-nav">&larr;</span> Older posts', 'twentyten' ) ); ?></div>
+	<div class="nav-next"><?php previous_posts_link( __( 'Newer posts <span class="meta-nav">&rarr;</span>', 'twentyten' ) ); ?></div>
+</div>
+`
+
+with this:
+
+`<?php wp_pagenavi(); ?>`
+
+Go to *WP-Admin -> Settings -> PageNavi* for configuration.
 
 = Changing the CSS =
 
@@ -56,15 +61,25 @@ Make sure your host is running PHP 5. The only foolproof way to do this is to ad
 `var_dump(PHP_VERSION);`
 <br>
 
-= Doesn't work with query_posts() =
+= Doesn't work with query_posts() or custom query =
 
-Read [The Right Way To Use query_posts()](http://scribu.net/wordpress/right-way-to-use-query_posts.html)
+Read [this tutorial](http://scribu.net/wordpress/wp-pagenavi/wpn-2-74.html)
 
-== Upgrade Notice ==
+= How do I ignore the options page? =
 
-Read before upgrading: http://scribu.net/wordpress/wp-pagenavi/wp-2-70.html
+If you are running a multi-language plugin, you will probably want to ignore the strings in the options page.
+
+You can do that like so:
+
+`<?php wp_pagenavi( array( 'options' => PageNavi_Core::$options->get_defaults() ) ); ?>`
 
 == Changelog ==
+
+= 2.74 (2011-02-17) =
+* added 'smaller' and 'larger' classes
+* added $query arg to wp_pagenavi()
+* updated translations
+* [more info](http://scribu.net/wordpress/wp-pagenavi/wpn-2-74.html)
 
 = 2.73 (2010-08-17) =
 * added $options arg to wp_pagenavi()

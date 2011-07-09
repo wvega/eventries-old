@@ -84,6 +84,8 @@ function wpce_init() {
         'query_var' => true,
         'rewrite' => array('slug' => 'location')
     ));
+        
+    flush_rewrite_rules();
 
     // rename Post Tags taxonmy to Tags, which is more general
     $tags = get_object_vars(get_taxonomy('post_tag'));
