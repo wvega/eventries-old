@@ -1,0 +1,3 @@
+[submodule "wp-content/plugins/contact-form-7"]
+	path = wp-content/plugins/contact-form-7
+	url = /files/Git/assets/contact-form-7.git/
