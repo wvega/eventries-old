@@ -3,3 +3,4 @@ sitemap.xml*
 wp-content/uploads/*
 .project
 .settings
+*.pyc
