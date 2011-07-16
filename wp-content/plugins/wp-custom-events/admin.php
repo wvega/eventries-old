@@ -8,7 +8,7 @@ add_action('admin_init', 'wpce_admin_init');
 
 function wpce_save_post($id) {
 
-    if (!wp_verify_nonce($_POST['wpce_nonce'], plugin_basename(__FILE__))) {
+    if (!isset($_POST['wpce_nonce']) || !wp_verify_nonce($_POST['wpce_nonce'], plugin_basename(__FILE__))) {
         return $id;
     }
 
@@ -137,10 +137,18 @@ function wpce_meta_box_event_info($post) {
     echo '<input id="wp-events-end-date" name="wpce_end_date" type="text" value="' . $end_date .'" />';
     echo '</li></ul>';
     echo '</div>';
+    
+    echo '<div class="wpce-column wpce-double-column">';
+    echo '<label class="wpce-centered" for="wp-events-map">'. __('Map', 'wp-events') .' </label>';
+    echo '<input id="wp-events-location" tabindex="1002" id="wp-events-location" name="wpce_location" type="text" value="'. '$location' .'" />';
+    echo '</div>';
 
     echo '<div class="wpce-column wpce-double-column">';
     echo '<label class="wpce-centered" for="wp-events-address">'. __('Address', 'wp-events') .' </label>';
     echo '<textarea class="wpce-textarea" tabindex="1003" id="wp-events-address" name="wpce_address"/>' . $address . '</textarea>';
+    echo '</div>';
+
+    echo '<div class="wpce-column wpce-double-column">';
     echo '<label class="wpce-centered" for="wp-events-url">'. __('URL', 'wp-events') .' </label>';
     echo '<input class="wpce-urlfield" tabindex="1004" id="wp-events-url" name="wpce_url" type="text" value="'. $url .'" />';
     echo '</div>';

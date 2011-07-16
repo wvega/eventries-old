@@ -8,6 +8,7 @@
             StartTime = $('#wp-events-start-time'),
             EndDate = $('#wp-events-end-date'),
             EndTime = $('#wp-events-end-time'),
+            LocationField = $("#wp-events-location"),
             StartDateDatepicker, EndDateDatepicker, li;
 
         li = StartDate.closest('li').children().hide().end(),
@@ -21,5 +22,7 @@
         li.append(EndDateDatepicker);
         EndDateDatepicker.datepicker({ altField: EndDate, defaultDate: new Date(EndDate.val()) });
         EndTime.timepicker({});
+        
+        LocationField.location({width: '410px', height:'192px'});
     });
 })(jQuery);

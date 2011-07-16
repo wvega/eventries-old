@@ -4,3 +4,5 @@ wp-content/uploads/*
 .project
 .settings
 *.pyc
+*.swp
+*~

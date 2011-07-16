@@ -63,6 +63,8 @@ function wpce_init() {
         'supports' => array('title', 'editor', 'author', 'thumbnail', 'excerpt', 'comments', 'revisions'),
         'taxonomies' => array('category', 'post_tag', 'location'),
         'register_meta_box_cb' => 'wpce_meta_box_cb', // see admin.php
+        'has_archive' => true,
+        'rewrite' => array('slug' => 'events'),
         'menu_position' => 5,
     ));
 
@@ -100,13 +102,17 @@ function wpce_init() {
     register_taxonomy_for_object_type('post_tag', 'event');
 
     // register needed scripts and their css stylesheets
+    wp_register_script('google-maps', 'http://maps.google.com/maps/api/js?sensor=false', array(), '3', true);
+    
     wp_register_script('jquery-ui-datepicker', WPCE_URL.'js/jquery-ui-1.8.5/jquery-ui-1.8.5.custom.min.js', array('jquery'), '1.8.5', true);
     wp_register_style('jquery-ui-smoothness', WPCE_URL.'js/jquery-ui-1.8.5/smoothness/jquery-ui-1.8.5.custom.css', array(), '1.8.5', 'all');
 
     wp_register_script('jquery-timepicker', WPCE_URL.'js/jquery-timepicker/jquery.timepicker.js', array('jquery'), '1.0.1', true);
     wp_register_style('jquery-timepicker', WPCE_URL.'js/jquery-timepicker/jquery.timepicker.css', array(), '1.0.1', 'all');
+    
+    wp_register_script('jquery-location-picker', WPCE_URL.'js/jquery-location-picker/jquery.location-picker.js', array('jquery', 'google-maps'), '1.0', true);
 
-    wp_register_script('wp-custom-events', WPCE_URL.'js/wp-custom-events.js', array('jquery-ui-datepicker', 'jquery-timepicker'), '1.0', true);
+    wp_register_script('wp-custom-events', WPCE_URL.'js/wp-custom-events.js', array('jquery-ui-datepicker', 'jquery-timepicker', 'jquery-location-picker'), '1.0', true);
     wp_register_style('wp-custom-events', WPCE_URL.'css/wp-custom-events.css', array('jquery-ui-smoothness', 'jquery-timepicker'), '1.0', 'all');
 }
 add_action('init', 'wpce_init');

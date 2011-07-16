@@ -20,7 +20,7 @@
 }
 .wpce-double-column {
     margin-left: 10px;
-    width: 400px;
+    width: 410px;
 }
 
 #side-sortables .wpce-column {
@@ -53,3 +53,9 @@
 #wp-custom-events-info .ui-datepicker td {
     font-size: 1.2em;
 }
+
+/* jQuery Location Picker */
+
+.location-picker .label {
+    padding: 4px;
+} 
