@@ -10,7 +10,7 @@
 	<meta name="author" content="" />
 	
 	<link rel="stylesheet" href="style.css" type="text/css" />
-	<link href="http://fonts.googleapis.com/css?family=Amaranth&v1" rel="stylesheet" type="text/css" />
+	<link href='http://fonts.googleapis.com/css?family=Oswald|Amaranth:400,700|Droid+Sans&v2' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="<?php bloginfo( 'stylesheet_url' ); ?>" media="screen" />
 	<link rel="shortcut icon" href="<?php bloginfo('template_directory'); ?>/images/favicon.ico" />
 	<?php wp_head(); ?>
@@ -25,7 +25,6 @@
 			<?php } else { ?>
 			<h1><a href="<?php echo home_url( '/' ); ?>" title="<?php bloginfo( 'name' ); ?>" title="Calendario de eventos"><span>Eventries - Calendario de eventos</span></a></h1>
 			<?php } ?>
-			
 		</header>
 		<!-- /header -->
 		<!-- mainnav -->
@@ -34,4 +33,4 @@
 			<nav id="menusp">
 				<?php wp_nav_menu( array( 'theme_location' => 'primary', 'menu' => 'menu-primary' ) ); ?>
 			</nav>
-			<!-- /menu superior -->			
+			<!-- /menu superior -->

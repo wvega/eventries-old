@@ -1,13 +1,25 @@
 /* =Reset
--------------------------------------------------------------- */
+ ---------------------------------------------------------------------------- */
 *{margin:0;padding:0;}
 
 article, aside, figure, footer, header, hgroup, nav, section {display: block;}
 h1,h2,h3,h4,h5,h6{padding:0;}
 ul{margin:0;}
 
+/* new clearfix */
+.clearfix:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+    }
+* html .clearfix             { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+
 /* =General
----------------------------------------------------------------*/
+ ---------------------------------------------------------------------------- */
 body{
 	background:#ebf6f8 url(images/bgeventries.jpg) top left no-repeat;
 	font-family: 'Lucida Grande',Verdana,sans-serif;
@@ -17,8 +29,12 @@ img{border:0;}
 .alignleft{float:left;}
 .alignright{float:right;}
 
+a {
+    text-decoration: none;
+}
+
 /* =Layout
-----------------------------------------------------------------*/
+ ---------------------------------------------------------------------------- */
 #wrapper{
 	width:960px;
 	margin:12px auto;	
@@ -76,33 +92,40 @@ img{border:0;}
 		-moz-box-shadow: 0 0 5px rgba(0, 0, 0, .4);
 		-webkit-box-shadow: 0 0 5px rgba(0, 0, 0, .4);
 	}
-		#slide{margin:9px 0;}
+		#slide{
+		    background: #999;
+		    width: 660px;
+		    height: 250px;
+		    margin:9px 0;
+		    -moz-box-shadow: 0 0 10px rgba(0, 0, 0, 0.4) inset;
+		}
 		#eventosEventries{
 			margin:12px 0;
 		}
-			#eventosEventries #titulareventos{
+			#eventosEventries #titulareventos {
 				border-bottom:1px solid #ccc;
 				margin-bottom:32px;
 			}
-			#eventosEventries header h2 a{
+			#eventosEventries header .entry-title a {
 				color:#5292C9;
+				color: #102835;
 				text-decoration:none;
 			}
-			#eventosEventries .meta{
+			#eventosEventries header .entry-meta {
 				background:#deeff7 url(images/metahentrybg.png) top right no-repeat;
 				border-width: 1px 0 1px 1px;
 				border-style: solid;
 				border-color:#c1deec;
 				height:37px;
 			}
-				.meta .eventoCreated{
+				#eventosEventries header .entry-meta .eventoCreated{
 					background:url(images/datecreatedbg.png) top left no-repeat;
 					color:#fff;
 					height:37px;
 					padding:1px 10px;
 					width:70px;
 				}
-					.eventoCreated span.date {
+					#eventosEventries header .entry-meta .eventoCreated span.date {
 					    display: block;
 					    float: left;
 					    font-size: 150%;
@@ -111,7 +134,8 @@ img{border:0;}
 					    margin-right: 5px;
 					    padding-top: 4px;
 					}
-					.eventoCreated .month, .eventoCreated .year {
+					#eventosEventries header .entry-meta .eventoCreated .month,
+					#eventosEventries header .entry-meta .eventoCreated .year {
 					    display: block;
 					    font-size: 9px;
 					    line-height: 1;
@@ -120,18 +144,60 @@ img{border:0;}
 					}
 				.hentry{
 					border-bottom:1px solid #dbe8f4;
+					font-family: 'Droid Sans', sans-serif;
 					margin-bottom:23px;
 					}
-				.hentry h2{
+				.hentry .entry-title {
 					font-family: 'Amaranth', arial, serif;
+					font-family: 'Oswald', sans-serif;
+					font-size: 2em;
 					margin-bottom:9px;
 					font-weight:normal;
 				}
-				.hentry p{
+				.hentry p {
 					font-size:14px;
 					margin:12px 0;
 				}
-	
+				
+				.event-info {
+				    background: #F6F6F6;
+				    float: right;
+				    font-size: 0.8em;
+				    margin: 0 0 10px 10px;
+				    padding: 10px 10px;
+				    width: 330px;
+				    -moz-border-radius: 1px;
+				    -moz-box-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+				}
+				.event-info b {
+                    float: left;
+                    font-family: 'Oswald', sans-serif;
+                    font-weight: normal;
+                    width: 130px;
+				}
+				.event-info span {
+				    float: left;
+				    line-height: 17px;
+				    padding-top: 3px;
+                    width: 200px;
+				}
+		    #eventosEventries footer {
+		        background: #dbe8f4;
+		        font-size: 13px;
+		        margin-top: 15px;
+		        padding: 4px 8px;
+		    }
+		    #eventosEventries footer a {
+		        color: #102835;
+		        font-weight: bold;
+		    }
+		    #eventosEventries footer a:hover {
+		        text-decoration: underline;
+            }
+            #eventosEventries footer .comments-link {
+                float: right;
+            }
+            
 	#sidebar{
 		float:right;
 		position:relative;

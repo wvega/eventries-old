@@ -21,33 +21,6 @@
 					<h1 class="entry-title"><?php the_title(); ?></h1>
 
                     <div class="event-meta">
-                        <dl>
-                            <dt>Dirección</dt>
-                            <dd><?php the_address() ?></dd>
-
-                            <?php if (is_one_day_event()) : ?>
-
-                            <dt>Fecha</dt>
-                            <dd><?php the_start_date() ?></dd>
-                            <dt>Hora</dt>
-                            <dd><?php the_start_time() ?> &mdash; <?php the_end_time() ?></dd>
-
-                            <?php else: ?>
-
-                            <dt>Fecha de Inicio</dt>
-                            <dd><?php the_start_date() ?></dd>
-                            <dt>Hora de Inicio</dt>
-                            <dd><?php the_start_time() ?></dd>
-                            <dt>Fecha de Finalización</dt>
-                            <dd><?php the_end_date() ?></dd>
-                            <dt>Hora de Finalización</dt>
-                            <dd><?php the_end_time() ?></dd>
-
-                            <?php endif; ?>
-
-                            <dt>Sitio Web</dt>
-                            <dl><?php the_url() ?></dl>
-                        </dl>
                     </div>
 
 					<div class="entry-content">
