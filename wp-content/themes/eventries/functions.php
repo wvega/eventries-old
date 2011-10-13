@@ -1,52 +1,54 @@
-<?php
-function mytheme_comment($comment, $args, $depth) {
-	$GLOBALS['comment'] = $comment; ?>
-	<li <?php comment_class(); ?> id="comment-<?php comment_ID() ?>">
-		<div class="comment-author">
-			<a class="avatar"><?php echo get_avatar($comment,$size='40',$default='images/gravatar-theme.png'); ?></a>
-			<span class="commentauthor"><?php comment_author_link() ?></span>
-			<span class="commentdata"><a href="#comment-<?php comment_ID() ?>" title=""><?php comment_date('F jS, Y') ?></a></span>				
-		</div>
-		<div class="comment-content">
-			<?php comment_text() ?>
-			<?php if ($comment->comment_approved == '0') : ?>
-				<em id="approve">Tu comentario est&aacute; en espera de ser moderado.</em>
-			<?php endif; ?>
-			<span class="comm-reply"></span>
-		</div>		
-	</li>
-<?php
-        }
-function mytheme_ping($comment, $args, $depth) {
-	$GLOBALS['comment'] = $comment; ?>
-	<li <?php comment_class(); ?> id="comment-<?php comment_ID() ?>">
-		<div class="comment-bot">
-			<span class="commentauthor"><?php comment_author_link() ?></span>
-			<span class="commentdata"><a href="#comment-<?php comment_ID() ?>" title=""><?php comment_date('F jS, Y') ?> on <?php comment_time() ?></a></span>			
-		</div>
-	</li>
-<?php
-        }
-?>
-<?php
-function get_last_events( $no_events ){
-    global $wpdb;
-    $sql = "SELECT eventTitle, postID, eventDescription, eventStartDate 
-    FROM wp_eventscalendar_main 
-    WHERE TIMESTAMP(eventStartDate,eventStartTime) >= NOW()
-    ORDER BY eventStartDate ASC, eventStartTime ASC
-    LIMIT $no_events";
-    
-    $events = $wpdb->get_results( $sql );
-    $output = '';
-    foreach ($events as $event) {
-        $permalink = get_permalink( $event->postID );
-        $event_title = $event->eventTitle;
-        $event_description = $event->eventDescription;
-        $output .= '<h4><a href="' . esc_url( $permalink ) . '" rel="bookmark" title="' . esc_attr( $event_title ) . '">' . esc_html( $event_title ) . '</a></h4>'.
-        '<p>' .$event_description. '</p>'.
-        '<p id="see-more"><a href="' . esc_url( $permalink ) . '" title="' . esc_attr( $event_title ) . '">Ver m&aacute;s sobre este evento...</a></p>';
-    }
-    echo $output;
+<?php 
+
+function __init__() {
+    register_nav_menu('primary', __('Menu Principal', 'eventries'));
 }
-?>
+add_action('init', '__init__');
+
+/**
+ * Find up to five (by default) closest events that are going to happen in the 
+ * near future. All events happening today
+ */
+function upcoming_events($count=5) {
+    $timestamp = strtotime(date('Y-m-d H:00', current_time('timestamp')));
+    $query = new WP_Query(array(
+        'post_type' => 'event',
+        'post_per_page' => $count,
+        'order' => 'ASC',
+        'orderby' => 'meta_value_num',
+        'meta_key' => 'start-timestamp',
+        'meta_value' => $timestamp,
+        'meta_compare' => '>='
+    ));
+    
+    return $query;
+}
+
+/**
+ * Find events that start before the end of the day and end after the start of 
+ * the current day. Events happening today.
+ */
+function todays_events($count=5) {
+    $timestamp = current_time('timestamp');
+    $query = new WP_Query(array(
+        'post_type' => 'event',
+        'post_per_page' => $count,
+        'order' => 'ASC',
+        'orderby' => 'meta_value_num',
+        'meta_key' => 'start-timestamp',
+        'meta_query' => array(
+            'relation' => 'AND',
+            array(
+                'key' => 'start-timestamp',
+                'value' => strtotime(date('Y-m-d 23:59:59', $timestamp)),
+                'compare' => '<='
+            ),
+            array(
+                'key' => 'end-timestamp',
+                'value' => strtotime(date('Y-m-d 00:00:00', $timestamp)),
+                'compare' => '>='
+            )
+        )
+    ));
+    return $query;
+}

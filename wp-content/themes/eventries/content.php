@@ -12,9 +12,9 @@
 			<?php if ( 'event' == get_post_type() ) : ?>
 			<div class="entry-meta">
                 <div class="eventoCreated">
-                  <span class="date">20</span>
-                  <span class="month">Oct</span>
-                  <span class="year">2010</span>
+                  <span class="date"><?php echo get_the_date('d') ?></span>
+                  <span class="month"><?php echo get_the_date('M') ?></span>
+                  <span class="year"><?php echo get_the_date('Y') ?></span>
                 </div>
 			</div><!-- .entry-meta -->
 			<?php endif; ?>
@@ -27,21 +27,24 @@
 		<?php else : ?>
 		<div class="entry-content clearfix">
             <div class="event-info">
-                <?php if (is_one_day_event()) : ?>
+                <?php $event = new Event(get_the_ID()) ?>
+                <?php if ($event->is_one_day_event()) : ?>
                 
-                <time class="clearfix"><b>Fecha:</b> <span><?php the_start_date() ?></span></time>
-                <time class="clearfix"><b>Hora:</b> <span><?php the_start_time() ?> &mdash; <?php the_end_time() ?></span></time>
+                <time class="clearfix"><b>Fecha:</b> <span><?php echo $event->start_date ?></span></time>
+                <time class="clearfix"><b>Hora:</b> <span><?php echo $event->start_time ?> &mdash; <?php echo $event->end_time ?></span></time>
 
                 <?php else: ?>
                 
-                <time class="clearfix"><b>Fecha de Inicio:</b> <span><?php the_start_date() ?>, <?php the_start_time() ?></span></time>
-                <time class="clearfix"><b>Fecha de Finalicación:</b> <span><?php the_end_date() ?>, <?php the_end_time() ?></span></time>
+                <time class="clearfix"><b>Fecha de Inicio:</b> <span><?php echo $event->start_date ?>, <?php echo $event->start_time ?></span></time>
+                <time class="clearfix"><b>Fecha de Finalicación:</b> <span><?php echo $event->end_date ?>, <?php echo $event->end_time ?></span></time>
 
                 <?php endif; ?>
                 
-                <div class="event-address clearfix"><b>Dirección:</b> <span><?php the_address() ?></span></div>
+                <div class="event-address clearfix"><b>Dirección:</b> <span><?php echo $event->address ?></span></div>
                 
-                <div class="url clearfix"><b>Sitio Web:</b> <span><?php the_url() ?></span></div>
+                <div class="url clearfix"><b>Sitio Web:</b> <span><?php echo $event->url ?></span></div>
+                
+                <?php if (is_single()): ?><div class="map clearfix" data-latlng="<?php echo $event->location ?>"></div><?php endif ?>
             </div>
             
 			<?php the_content( __( 'Continue reading <span class="meta-nav">&rarr;</span>', 'eventries' ) ); ?>
@@ -57,4 +60,12 @@
 			<?php endif; // End if comments_open() ?>
 			
 		</footer><!-- #entry-meta -->
+
 	</article><!-- #post-<?php the_ID(); ?> -->
+
+        
+    <?php if (is_single()): ?>
+    <div id="comments">
+        <?php comments_template() ?>
+    </div>
+    <?php endif ?>

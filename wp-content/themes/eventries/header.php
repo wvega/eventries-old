@@ -1,43 +1,36 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html>
+<!DOCTYPE html>
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]> <html lang="en" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]> <html lang="en" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]> <html lang="en" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="es" class="no-js"> <!--<![endif]-->
 <head>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
-    <meta content="index,follow" name="robots" /> 
-    <title><?php wp_title('&laquo;', true, 'right'); ?> <?php bloginfo('name'); ?></title>
-    <link rel="stylesheet" href="<?php bloginfo('stylesheet_url'); ?>"" type="text/css" media="screen" />
-    <?php if ( is_singular() ) wp_enqueue_script( 'comment-reply' ); ?>
-	<link rel="pingback" href="<?php bloginfo('pingback_url'); ?>" />
-	<link rel="index" title="Eventries" href="http://eventries.com" />
+	<title>Eventries</title>
+	<meta charset="utf-8" />
+	<meta name="author" content="" />
+	
+	<link rel="stylesheet" href="style.css" type="text/css" />
+	<link href='http://fonts.googleapis.com/css?family=Oswald|Amaranth:400,700|Droid+Sans&v2' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="<?php bloginfo( 'stylesheet_url' ); ?>" media="screen" />
+	<link rel="shortcut icon" href="<?php bloginfo('template_directory'); ?>/images/favicon.ico" />
 	<?php wp_head(); ?>
 </head>
 <body>
+	<!-- wrapper -->
 	<div id="wrapper">
-		<!-- top -->
-		<div id="header">
-			<div id="logo">
-				<h1><a href="http://eventries.com" title="Ir al inicio" rel="home"><img src="<?php bloginfo('template_directory'); ?>/images/logo_eventos.png" alt="Los eventos" /></a></h1>
-			</div>
-			<div id="search">
-			    <ul id="maintop">
-			        <li><a href="">Contacto</a></li>
-			        <li><a href="">Acerca de</a></li>
-			    </ul>
-				<form action="<?php bloginfo('url'); ?>/" method="get" id="searchform">
-			        <div> 
-				        <label for="q">Buscar</label> 
-				        <input type="text" id="s" name="s" class="text" value="Buscar..." onfocus="if (this.value=='Buscar...') this.value='';" /> 
-				        <input class="submit" type="submit" value="Buscar" /> 
-			        </div> 
-		        </form>
-			</div>
-		</div>
-		<!-- /top -->
-		<!-- main -->
-		<div id="main">
-			<div id="head">
-				<h1>Bienvenido</h1>
-				<div id="intro">
-					En Eventries podr&aacute;s encontrar todos los eventos Tecnol&oacute;gicos, Acad&eacute;micos y Culturales que se llevan a cabo en Colombia
-				</div>
-			</div>
+		<!-- header -->
+		<header id="eventriesh">
+		    <?php if (is_home()) { ?>		
+			<h1><a href="<?php echo home_url( '/' ); ?>" title="<?php bloginfo( 'name' ); ?>" title="Calendario de eventos"><span>Eventries - Calendario de eventos</span></a></h1>
+			<?php } else { ?>
+			<h1><a href="<?php echo home_url( '/' ); ?>" title="<?php bloginfo( 'name' ); ?>" title="Calendario de eventos"><span>Eventries - Calendario de eventos</span></a></h1>
+			<?php } ?>
+		</header>
+		<!-- /header -->
+		<!-- mainnav -->
+		<div id="mainnav">
+		    <!-- menu superior -->
+			<nav id="menusp">
+				<?php wp_nav_menu( array( 'theme_location' => 'primary', 'menu' => 'menu-primary' ) ); ?>
+			</nav>
+			<!-- /menu superior -->

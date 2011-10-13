@@ -1,16 +1,15 @@
             <!-- footer -->
-			<div id="footer">
-			    <ul>
-			        <li>Eventries: <a href="/about">Acerca</a> / <a href="/blog">Contacto</a>
-					</li>
-                    <li>Legal: Copyleft / <a href="/terms">Terms of Service</a> / <a rel="nofollow" href="/privacy">Privacy Statement</a>
-                    </li>
-                </ul>
-			</div>
+			<footer id="eventriesf">
+			    
+			</footer>
 			<!-- /footer -->
 		</div>
-		<!-- /main -->
+		<!-- /mainnav -->
 	</div>
+	<!-- /wrapper -->
 	<?php wp_footer(); ?>
+    <script type="text/javascript">
+        jQuery.LocationPicker.map.apply(jQuery('.event-info .map'));
+    </script>
 </body>
 </html>
