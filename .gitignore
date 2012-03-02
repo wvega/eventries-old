@@ -6,3 +6,8 @@ wp-content/uploads/*
 *.pyc
 *.swp
 *~
+
+# all backups
+sql/*.sql
+# except the latest
+!sql/*latest*

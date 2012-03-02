@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import datetime
 import getpass
 import os
 import re
@@ -10,19 +11,23 @@ from fabric.contrib.console import confirm
 from options import options
 
 
-def setup():
+def setup(version='3.1.3'):
     """Setup a new WordPress project"""
 
     if options['name'] == 'example.com':
         abort('Please update your options.py first!')
 
-    wordpress()
+    wordpress(version)
     git(force=True)
+
+    import urlparse
+    host = urlparse.urlparse(options['local.url']).netloc
+    httpdconf(host, os.getcwd())
 
     print("\nThat's all. Have fun!")
 
 
-def wordpress(version='3.1.3'):
+def wordpress(version):
     """Download latest stable version of WordPress"""
 
     if version is None:
@@ -52,17 +57,56 @@ def git(force=False):
         local('mv gitignore.sample .gitignore')
         local('git add .')
         local('git commit -m "Initial commit."')
-        
+
         if os.path.exists('/files/Git/projects/'):
             repo = '/files/Git/projects/%s.git' % options['name']
-            local('git clone --bare . %s' % repo)
-            local('git remote add origin %s' % repo )
+            if not os.path.exists(repo):
+                local('git clone --bare . %s' % repo)
+            local('git remote add origin %s' % repo)
             local('git config branch.master.remote origin')
             local('git config branch.master.merge refs/heads/master')
         else:
             print("\nCan't create origin. Skipping")
     else:
-        print('Ok. Nothing was touched!');
+        print('Ok. Nothing was touched!')
+
+
+def httpdconf(domain, src, *args, **kw):
+    conf = options['httpd.conf.dir']
+    root = os.path.join(options['httpd.document.root'], domain)
+    src = os.path.realpath(src)
+
+    if not os.path.exists(conf):
+        print '\nERROR: Configuration directory doesn\'t exists: %s\n' % conf
+        return
+
+    conf = open(os.path.join(conf, '%s.conf' % domain), 'w+')
+
+    conf.write('<VirtualHost *:80>\n')
+    conf.write('\tServerName %s\n' % domain)
+    conf.write('\tDocumentRoot %s\n' % root)
+    conf.write('\n')
+    conf.write('\t<Directory %s>\n' % root)
+    conf.write('\t\tOptions FollowSymLinks\n')
+    conf.write('\t\tAllowOverride All\n')
+    conf.write('\t</Directory>\n')
+    conf.write('</VirtualHost>\n')
+    conf.close()
+
+    try:
+        os.symlink(src, root)
+    except OSError:
+        if os.path.exists(root):
+            os.unlink(root)
+            os.symlink(src, root)
+        else:
+            print("Warning: couldn't create symbolic link (%s) to %s. Try:" % (src, root))
+            print('ln -s %s %s\n' % (src, root))
+
+    print('A VirtualHost has been created:')
+    print('\n%s => %s.\n' % (domain, src))
+    print('Add the following to your /etc/hosts and restart Apache:')
+    print('\n::1             %s\n' % domain)
 
 
 def prepare():
@@ -107,29 +151,34 @@ def backup():
     password = options['local.password']
     db = options['local.db']
 
+    if not os.path.exists('sql'):
+        local('mkdir -p sql')
+
     # find an unique name for the backup file
-    import datetime
     now = datetime.datetime.now()
     basename = 'sql/%s-%d-%.2d-%.2d.sql' % (options['name'], now.year, now.month, now.day)
     filename = basename.replace('.sql', '-1.sql')
-    i = 2
 
+    i = 2
     while os.path.exists(filename):
         filename = basename.replace('.sql', '-%d.sql' % i)
         i = i + 1
 
+    command = 'mysqldump --add-drop-table --add-drop-database -h%s -u%s -p%s --databases %s > %s'
+
     # create db backups for testing and development environments
     last = 'local.url'
-    for e in ['production', 'testing']:
+    for e in ['production', 'testing', 'local']:
         if options['%s.url' % e] is None:
             continue
-        replace(options[last], options['%s.url' % e])
-        local('mysqldump -uroot -ppassword %s > %s' % (db, filename.replace('.sql', '-%s.sql' % e)))
-        last = '%s.url' % e
 
-    # create a local db backup
-    replace(options[last], options['local.url'])
-    local('mysqldump -uroot -ppassword %s > %s' % (db, filename))
+        last = '%s.url' % e
+        sqlfile = filename.replace('.sql', '-%s.sql' % e)
+
+        replace(options[last], options['%s.url' % e])
+
+        local(command % (host, username, password, db, sqlfile))
+        local('cp %s sql/%s-latest-%s.sql' % (sqlfile, options['name'], e))
 
 
 def config(target='local', create=None):
@@ -144,7 +193,5 @@ def config(target='local', create=None):
     elif not os.path.exists('wp-config.%s.php' % target):
         if create or confirm('Do you want to create the config file wp-config.%s.php' % target):
             local('cp wp-config.php wp-config.%s.php' % target)
-    else:        
+    else:
         local('cp wp-config.%s.php wp-config.php' % target)
-
-
