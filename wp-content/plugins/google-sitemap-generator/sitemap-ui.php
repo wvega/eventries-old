@@ -1,7 +1,7 @@
 <?php
 /*
  
- $Id: sitemap-ui.php 241392 2010-05-15 09:51:44Z arnee $
+ $Id: sitemap-ui.php 440117 2011-09-19 13:24:49Z arnee $
 
 */
 
@@ -183,7 +183,7 @@ class GoogleSitemapGeneratorUI {
 				
 				//Options of the category "Basic Settings" are boolean, except the filename and the autoprio provider
 				if(substr($k,0,5)=="sm_b_") {
-					if($k=="sm_b_filename" || $k=="sm_b_fileurl_manual" || $k=="sm_b_filename_manual" || $k=="sm_b_prio_provider" || $k=="sm_b_manual_key" || $k == "sm_b_yahookey" || $k == "sm_b_style" || $k == "sm_b_memory") {
+					if($k=="sm_b_filename" || $k=="sm_b_fileurl_manual" || $k=="sm_b_filename_manual" || $k=="sm_b_prio_provider" || $k=="sm_b_manual_key" || $k == "sm_b_style" || $k == "sm_b_memory") {
 						if($k=="sm_b_filename_manual" && strpos($_POST[$k],"\\")!==false){
 							$_POST[$k]=stripslashes($_POST[$k]);
 						}
@@ -230,6 +230,18 @@ class GoogleSitemapGeneratorUI {
 						}
 
 						$this->sg->_options[$k] = $enabledTaxonomies;
+												
+					} else if($k=='sm_in_customtypes') {
+
+						$enabledPostTypes = array();
+						
+						foreach(array_keys((array) $_POST[$k]) AS $postTypeName) {
+							if(empty($postTypeName) || !post_type_exists($postTypeName)) continue;
+
+							$enabledPostTypes[] = $postTypeName;
+						}
+
+						$this->sg->_options[$k] = $enabledPostTypes;
 												
 					} else $this->sg->_options[$k]=(bool) $_POST[$k];
 				//Options of the category "Change frequencies" are string
@@ -404,10 +416,6 @@ class GoogleSitemapGeneratorUI {
 		
 		a.sm_resGoogle {
 			background-image:url(<?php echo $this->sg->GetPluginUrl(); ?>img/icon-google.gif);
-		}
-		
-		a.sm_resYahoo {
-			background-image:url(<?php echo $this->sg->GetPluginUrl(); ?>img/icon-yahoo.gif);
 		}
 		
 		a.sm_resBing {
@@ -595,10 +603,7 @@ class GoogleSitemapGeneratorUI {
 							<?php $this->HtmlPrintBoxHeader('sm_smres',__('Sitemap Resources:','sitemap'),true); ?>
 								<a class="sm_button sm_resGoogle"    href="<?php echo $this->sg->GetRedirectLink('sitemap-gwt'); ?>"><?php _e('Webmaster Tools','sitemap'); ?></a>
 								<a class="sm_button sm_resGoogle"    href="<?php echo $this->sg->GetRedirectLink('sitemap-gwb'); ?>"><?php _e('Webmaster Blog','sitemap'); ?></a>
-								
-								<a class="sm_button sm_resYahoo"     href="<?php echo $this->sg->GetRedirectLink('sitemap-yse'); ?>"><?php _e('Site Explorer','sitemap'); ?></a>
-								<a class="sm_button sm_resYahoo"     href="<?php echo $this->sg->GetRedirectLink('sitemap-ywb'); ?>"><?php _e('Search Blog','sitemap'); ?></a>
-								
+
 								<a class="sm_button sm_resBing"      href="<?php echo $this->sg->GetRedirectLink('sitemap-lwt'); ?>"><?php _e('Webmaster Tools','sitemap'); ?></a>
 								<a class="sm_button sm_resBing"      href="<?php echo $this->sg->GetRedirectLink('sitemap-lswcb'); ?>"><?php _e('Webmaster Center Blog','sitemap'); ?></a>
 								<br />
@@ -683,19 +688,7 @@ class GoogleSitemapGeneratorUI {
 											echo "<li class=\"sm_error\">" . str_replace("%s",wp_nonce_url($this->sg->GetBackLink() . "&sm_ping_service=google&noheader=true",'sitemap'),__('There was a problem while notifying Google. <a href="%s">View result</a>','sitemap')) . "</li>";
 										}
 									}
-									
-									if($status->_usedYahoo) {
-										if($status->_yahooSuccess) {
-											echo "<li>" .__("YAHOO was <b>successfully notified</b> about changes.",'sitemap'). "</li>";
-											$yt = $status->GetYahooTime();
-											if($yt>4) {
-												echo "<li class=\sm_optimize\">" . str_replace("%time%",$yt,__("It took %time% seconds to notify YAHOO, maybe you want to disable this feature to reduce the building time.",'sitemap')) . "</li>";
-											}
-										} else {
-											echo "<li class=\"sm_error\">" . str_replace("%s",wp_nonce_url($this->sg->GetBackLink() . "&sm_ping_service=yahoo&noheader=true",'sitemap'),__('There was a problem while notifying YAHOO. <a href="%s">View result</a>','sitemap')) . "</li>";
-										}
-									}
-									
+
 									if($status->_usedMsn) {
 										if($status->_msnSuccess) {
 											echo "<li>" .__("Bing was <b>successfully notified</b> about changes.",'sitemap'). "</li>";
@@ -757,6 +750,10 @@ class GoogleSitemapGeneratorUI {
 								echo "<li>" . str_replace("%s",wp_nonce_url($this->sg->GetBackLink() . "&sm_rebuild=true&noheader=true",'sitemap'),__('If you changed something on your server or blog, you should <a href="%s">rebuild the sitemap</a> manually.','sitemap')) . "</li>";
 							}
 							echo "<li>" . str_replace("%d",wp_nonce_url($this->sg->GetBackLink() . "&sm_rebuild=true&sm_do_debug=true",'sitemap'),__('If you encounter any problems with the build process you can use the <a href="%d">debug function</a> to get more information.','sitemap')) . "</li>";
+
+							if(version_compare($wp_version,"2.9",">=") && version_compare(PHP_VERSION,"5.1",">=")) {
+								echo "<li class='sm_hint'>" . str_replace("%s",$this->sg->GetRedirectLink('sitemap-info-beta'), __('There is a new beta version of this plugin available which supports the new multi-site feature of WordPress as well as many other new functions! <a href="%s">More information and download</a>','sitemap')) . "</li>";
+							}
 							?>
 
 						</ul>
@@ -816,12 +813,6 @@ class GoogleSitemapGeneratorUI {
 								<input type="checkbox" id="sm_b_pingask" name="sm_b_pingask" <?php echo ($this->sg->GetOption("b_pingask")==true?"checked=\"checked\"":"") ?> />
 								<label for="sm_b_pingask"><?php _e('Notify Ask.com about updates of your Blog', 'sitemap') ?></label><br />
 								<small><?php _e('No registration required.','sitemap'); ?></small>
-							</li>
-							<li>
-								<input type="checkbox" id="sm_b_pingyahoo" name="sm_b_pingyahoo" <?php echo ($this->sg->GetOption("b_pingyahoo")==true?"checked=\"checked\"":"") ?> />
-								<label for="sm_b_pingyahoo"><?php _e('Notify YAHOO about updates of your Blog', 'sitemap') ?></label><br />
-								<label for="sm_b_yahookey"><?php _e('Your Application ID:', 'sitemap') ?> <input type="text" name="sm_b_yahookey" id="sm_b_yahookey" value="<?php echo $this->sg->GetOption("b_yahookey"); ?>" /></label><br />
-								<small><?php echo str_replace(array("%s1","%s2"),array($this->sg->GetRedirectLink('sitemap-ykr'),' (<a href="http://developer.yahoo.net/about/">Web Services by Yahoo!</a>)'),__('Don\'t you have such a key? <a href="%s1">Request one here</a>! %s2','sitemap')); ?></small>
 							</li>
 							<li>
 								<label for="sm_b_robots">
@@ -992,7 +983,7 @@ class GoogleSitemapGeneratorUI {
 					
 					<!-- Includes -->
 					<?php $this->HtmlPrintBoxHeader('sm_includes',__('Sitemap Content', 'sitemap')); ?>
-					
+						<b><?php _e('WordPress standard content', 'sitemap') ?>:</b>
 						<ul>
 							<li>
 								<label for="sm_in_home">
@@ -1030,6 +1021,12 @@ class GoogleSitemapGeneratorUI {
 									<?php _e('Include archives', 'sitemap') ?>
 								</label>
 							</li>
+							<li>
+								<label for="sm_in_auth">
+									<input type="checkbox" id="sm_in_auth" name="sm_in_auth"  <?php echo ($this->sg->GetOption("in_auth")==true?"checked=\"checked\"":"") ?> />
+									<?php _e('Include author pages', 'sitemap') ?>
+								</label>
+							</li>
 							<?php if($this->sg->IsTaxonomySupported()): ?>
 							<li>
 								<label for="sm_in_tags">
@@ -1037,11 +1034,20 @@ class GoogleSitemapGeneratorUI {
 									<?php _e('Include tag pages', 'sitemap') ?>
 								</label>
 							</li>
-							<?php
-								$taxonomies = $this->sg->GetCustomTaxonomies();
+							<?php endif; ?>
+						</ul>
+							
+						<?php 
+						
+						if($this->sg->IsTaxonomySupported()) {
+							$taxonomies = $this->sg->GetCustomTaxonomies();
+							
+							$enabledTaxonomies = $this->sg->GetOption('in_tax');
+							
+							if(count($taxonomies)>0) {
+								?><b><?php _e('Custom taxonomies', 'sitemap') ?>:</b><ul><?php 
 								
-								$enabledTaxonomies = $this->sg->GetOption('in_tax');
-								
+							
 								foreach ($taxonomies as $taxName) {
 										
 									$taxonomy = get_taxonomy($taxName);
@@ -1052,18 +1058,45 @@ class GoogleSitemapGeneratorUI {
 											<input type="checkbox" id="sm_in_tax[<?php echo $taxonomy->name; ?>]" name="sm_in_tax[<?php echo $taxonomy->name; ?>]" <?php echo $selected?"checked=\"checked\"":""; ?> />
 											<?php echo str_replace('%s',$taxonomy->label,__('Include taxonomy pages for %s', 'sitemap')); ?>
 										</label>
-									<li>
+									</li>
 									<?php
 								}
-							?>
-							<?php endif; ?>
-							<li>
-								<label for="sm_in_auth">
-									<input type="checkbox" id="sm_in_auth" name="sm_in_auth"  <?php echo ($this->sg->GetOption("in_auth")==true?"checked=\"checked\"":"") ?> />
-									<?php _e('Include author pages', 'sitemap') ?>
-								</label>
-							</li>
-						</ul>
+								
+								?></ul><?php 
+								
+							}
+						}
+						
+		
+						if($this->sg->IsCustomPostTypesSupported()) {
+							$custom_post_types = $this->sg->GetCustomPostTypes();
+						
+							$enabledPostTypes = $this->sg->GetOption('in_customtypes');
+						
+							if(count($taxonomies)>0) {
+								?><b><?php _e('Custom post types', 'sitemap') ?>:</b><ul><?php 
+							
+								foreach ($custom_post_types as $post_type) {
+									$post_type_object = get_post_type_object($post_type);
+									
+									if (is_array($enabledPostTypes)) $selected = in_array($post_type_object->name, $enabledPostTypes);
+
+									?>
+									<li>
+										<label for="sm_in_customtypes[<?php echo $post_type_object->name; ?>]">
+											<input type="checkbox" id="sm_in_customtypes[<?php echo $post_type_object->name; ?>]" name="sm_in_customtypes[<?php echo $post_type_object->name; ?>]" <?php echo $selected?"checked=\"checked\"":""; ?> />
+											<?php echo str_replace('%s',$post_type_object->label,__('Include custom post type %s', 'sitemap')); ?>
+										</label>
+									</li>
+									<?php
+								}
+								
+								?></ul><?php 
+							}
+						}
+						
+						?>
+						
 						<b><?php _e('Further options', 'sitemap') ?>:</b>
 						<ul>
 							<li>
@@ -1257,14 +1290,14 @@ class GoogleSitemapGeneratorUI {
 				<input type="hidden" name="business" value="<?php echo "donate" /* N O S P A M */ . "@" . "arnebra" . "chhold.de"; ?>" />
 				<input type="hidden" name="item_name" value="Sitemap Generator for WordPress. Please tell me if if you don't want to be listed on the donator list." />
 				<input type="hidden" name="no_shipping" value="1" />
-				<input type="hidden" name="return" value="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . $this->sg->GetBackLink(); ?>&amp;sm_donated=true" />
+				<input type="hidden" name="return" value="<?php echo $this->sg->GetBackLink(); ?>&amp;sm_donated=true" />
 				<input type="hidden" name="item_number" value="0001" />
 				<input type="hidden" name="currency_code" value="<?php echo $myLc["cc"]; ?>" />
 				<input type="hidden" name="bn" value="PP-BuyNowBF" />
 				<input type="hidden" name="lc" value="<?php echo $myLc["lc"]; ?>" />
 				<input type="hidden" name="rm" value="2" />
 				<input type="hidden" name="on0" value="Your Website" />
-				<input type="hidden" name="os0" value="<?php echo get_bloginfo("home"); ?>"/>
+				<input type="hidden" name="os0" value="<?php echo get_bloginfo("url"); ?>"/>
 			</form>
 		</div>
 		<?php

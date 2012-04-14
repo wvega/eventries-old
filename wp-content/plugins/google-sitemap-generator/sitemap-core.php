@@ -1,7 +1,7 @@
 <?php
 /*
  
- $Id: sitemap-core.php 246875 2010-05-29 07:22:02Z arnee $
+ $Id: sitemap-core.php 440117 2011-09-19 13:24:49Z arnee $
 
 */
 
@@ -186,31 +186,6 @@ class GoogleSitemapGeneratorStatus {
 	
 	function GetGoogleTime() {
 		return round($this->_googleEndTime - $this->_googleStartTime,2);
-	}
-	
-	var $_usedYahoo = false;
-	var $_yahooUrl = '';
-	var $_yahooSuccess = false;
-	var $_yahooStartTime = 0;
-	var $_yahooEndTime = 0;
-	
-	function StartYahooPing($url) {
-		$this->_yahooUrl = $url;
-		$this->_usedYahoo = true;
-		$this->_yahooStartTime = $this->GetMicrotimeFloat();
-		
-		$this->Save();
-	}
-	
-	function EndYahooPing($success) {
-		$this->_yahooEndTime = $this->GetMicrotimeFloat();
-		$this->_yahooSuccess = $success;
-		
-		$this->Save();
-	}
-	
-	function GetYahooTime() {
-		return round($this->_yahooEndTime - $this->_yahooStartTime,2);
 	}
 	
 	var $_usedAsk = false;
@@ -746,7 +721,7 @@ class GoogleSitemapGenerator {
 	/**
 	 * @var Version of the generator in SVN
 	*/
-	var $_svnVersion = '$Id: sitemap-core.php 246875 2010-05-29 07:22:02Z arnee $';
+	var $_svnVersion = '$Id: sitemap-core.php 440117 2011-09-19 13:24:49Z arnee $';
 	
 	/**
 	 * @var array The unserialized array with the stored options
@@ -910,8 +885,6 @@ class GoogleSitemapGenerator {
 		$this->_options["sm_b_xml"]=true;					//Create a .xml file
 		$this->_options["sm_b_gzip"]=true;					//Create a gzipped .xml file(.gz) file
 		$this->_options["sm_b_ping"]=true;					//Auto ping Google
-		$this->_options["sm_b_pingyahoo"]=false;			//Auto ping YAHOO
-		$this->_options["sm_b_yahookey"]='';				//YAHOO Application Key
 		$this->_options["sm_b_pingask"]=true;				//Auto ping Ask.com
 		$this->_options["sm_b_pingmsn"]=true;				//Auto ping MSN
 		$this->_options["sm_b_manual_enabled"]=false;		//Allow manual creation of the sitemap via GET request
@@ -940,6 +913,7 @@ class GoogleSitemapGenerator {
 		$this->_options["sm_in_auth"]=false;				//Include author pages
 		$this->_options["sm_in_tags"]=false;				//Include tag pages
 		$this->_options["sm_in_tax"]=array();				//Include additional taxonomies
+		$this->_options["sm_in_customtypes"]=array();		//Include custom post types
 		$this->_options["sm_in_lastmod"]=true;				//Include the last modification date
 
 		$this->_options["sm_cf_home"]="daily";				//Change frequency of the homepage
@@ -1159,6 +1133,18 @@ class GoogleSitemapGenerator {
 	function IsTaxonomySupported() {
 		return (function_exists("get_taxonomy") && function_exists("get_terms"));
 	}
+
+	/**
+	 * Returns if this version of WordPress supports custom post types
+	 *
+	 * @since 3.2.5
+	 * @access private
+	 * @author Lee Willis
+	 * @return true if supported
+	 */
+	function IsCustomPostTypesSupported() {
+		return (function_exists("get_post_types") && function_exists("register_post_type"));
+	}
 	
 	/**
 	 * Returns the list of custom taxonies. These are basically all taxonomies without categories and post tags
@@ -1169,6 +1155,20 @@ class GoogleSitemapGenerator {
 	function GetCustomTaxonomies() {
 		$taxonomies = get_object_taxonomies('post');
 		return array_diff($taxonomies,array("category","post_tag"));
+	}
+
+	/**
+	 * Returns the list of custom post types. These are all custome post types except post, page and attachment
+	 * 
+	 * @since 3.2.5
+	 * @author Lee Willis
+	 * @return array Array of custom post types as per get_post_types
+	 */
+	function GetCustomPostTypes() {
+		$post_types = get_post_types(array("public"=>1));
+
+		$post_types = array_diff($post_types,array("post","page","attachment"));
+		return $post_types;
 	}
 	
 	/**
@@ -1744,7 +1744,15 @@ class GoogleSitemapGenerator {
 				//WP < 2.1: posts are post_status = publish
 				//WP >= 2.1: post_type must be 'post', no date check required because future posts are post_status='future'
 				if($wpCompat) $where.="(post_status = 'publish' AND post_date_gmt <= '" . gmdate('Y-m-d H:i:59') . "')";
-				else $where.=" (post_status = 'publish' AND (post_type = 'post' OR post_type = '')) ";
+				else if ($this->IsCustomPostTypesSupported() && count($this->GetOption('in_customtypes'))>0) {
+					$where.=" (post_status = 'publish' AND (post_type in ('','post'";
+					foreach ($this->GetOption('in_customtypes') as $customType) {
+						$where.= ",'$customType'";
+					}
+					$where .= "))) ";
+				} else {
+					$where.=" (post_status = 'publish' AND (post_type = 'post' OR post_type = '')) ";
+				}
 			}
 			
 			if($this->GetOption('in_pages')) {
@@ -2210,27 +2218,13 @@ class GoogleSitemapGenerator {
 			}
 		}
 		
-		//Ping YAHOO
-		if($this->GetOption("b_pingyahoo")===true && $this->GetOption("b_yahookey")!="" && !empty($pingUrl)) {
-			$sPingUrl="http://search.yahooapis.com/SiteExplorerService/V1/updateNotification?appid=" . $this->GetOption("b_yahookey") . "&url=" . urlencode($pingUrl);
-			$status->StartYahooPing($sPingUrl);
-			$pingres=$this->RemoteOpen($sPingUrl);
-
-			if($pingres==NULL || $pingres===false || strpos(strtolower($pingres),"success")===false) {
-				trigger_error("Failed to ping YAHOO: " . htmlspecialchars(strip_tags($pingres)),E_USER_NOTICE);
-				$status->EndYahooPing(false,$this->_lastError);
-			} else {
-				$status->EndYahooPing(true);
-			}
-		}
-		
 		//Ping Bing
 		if($this->GetOption("b_pingmsn") && !empty($pingUrl)) {
 			$sPingUrl="http://www.bing.com/webmaster/ping.aspx?siteMap=" . urlencode($pingUrl);
 			$status->StartMsnPing($sPingUrl);
 			$pingres=$this->RemoteOpen($sPingUrl);
-									  
-			if($pingres==NULL || $pingres===false || strpos($pingres,"Thanks for submitting your sitemap")===false) {
+			//Bing returns ip/country-based success messages, so there is no way to check the content. Rely on HTTP 500 only then...
+			if($pingres==NULL || $pingres===false || strpos($pingres," ")===false) {
 				trigger_error("Failed to ping Bing: " . htmlspecialchars(strip_tags($pingres)),E_USER_NOTICE);
 				$status->EndMsnPing(false,$this->_lastError);
 			} else {
@@ -2272,9 +2266,6 @@ class GoogleSitemapGenerator {
 		switch($service) {
 			case "google":
 				$url = $status->_googleUrl;
-				break;
-			case "yahoo":
-				$url = $status->_yahooUrl;
 				break;
 			case "msn":
 				$url = $status->_msnUrl;
@@ -2514,9 +2505,9 @@ class GoogleSitemapGenerator {
 	 * @return int The time in seconds
 	 */
 	function GetTimestampFromMySql($mysqlDateTime) {
-		list($date, $hours) = split(' ', $mysqlDateTime);
-		list($year,$month,$day) = split('-',$date);
-		list($hour,$min,$sec) = split(':',$hours);
+		list($date, $hours) = explode(' ', $mysqlDateTime);
+		list($year,$month,$day) = explode('-',$date);
+		list($hour,$min,$sec) = explode(':',$hours);
 		return mktime(intval($hour), intval($min), intval($sec), intval($month), intval($day), intval($year));
 	}
 	

@@ -22,7 +22,7 @@ define('DB_NAME', 'eventries');
 define('DB_USER', 'root');
 
 /** MySQL database password */
-define('DB_PASSWORD', 'password');
+define('DB_PASSWORD', 'root');
 
 /** MySQL hostname */
 define('DB_HOST', 'localhost');
@@ -42,14 +42,14 @@ define('DB_COLLATE', '');
  *
  * @since 2.6.0
  */
-define('AUTH_KEY',         '/4eCri%Y:lm`;.G$Jf{&?4Pr1-7[gG?|ldTQ>F,_y2&pz*3^cMJIg+/G 28zgt+y');
-define('SECURE_AUTH_KEY',  '(9-8-<qXs9%-p~Vlk/rqk>oDS 6,?M>_zKHJpL]j1g|R^zU<|QgedD6:*OC/D6^8');
-define('LOGGED_IN_KEY',    ']hG9&fl.<]zH/ITFR*/$:r37Q-iOqSleSk]@y]_)KPOnE&s+{i^E|^,k=<DmC9Sa');
-define('NONCE_KEY',        'JoSv0vNVz ay@BEUWhl]B|,<|{d9>Lq$vMHBKG8LeX^tVrO{j|k#KV@=G=to.(wC');
-define('AUTH_SALT',        'Tj}9J}t-e,,=]R|zqE40J7-vi?<3|:erWnKTB}.qhOU$:#xy5UG+AlbM@z!7UGpn');
-define('SECURE_AUTH_SALT', '}/lC6dIs4xX?L$6p#|3Q/0qY/acco~#AwZVLzpoy].;a6IstREu:??M=xCM%O&+-');
-define('LOGGED_IN_SALT',   '^;C)U&]H+y`o.(3&Dp[N+s:Cz?z8pr<csL.?.P1^y|R@vYP-.S4)?S]N=>V-FL!R');
-define('NONCE_SALT',       '9KwJYW14jAb,WgBcN$CW15ZS;#(S83<OzL+!{I-CN[*^OGF`k<UfBYT8[#)a+cV~');
+define('AUTH_KEY',         '<ah}5Z]>%`]j_ ,5%K<4kHNc(^xa:lo_1Z` 4hk_L>shfy}SEHBo?;O%CMPgJf_p');
+define('SECURE_AUTH_KEY',  '+iKVb2nxy|~I-[snSm6B=ay%4yV=4Ap`DnzyR($RMDZnx_Nv#M0n+|U49b8S,(R#');
+define('LOGGED_IN_KEY',    'c|oM3&5*Xi-aIUK7yu_fFiqY2VD$bYN3fK6s#w`>)+`PK`^Mm-JQ5Nj@pdM|!/.i');
+define('NONCE_KEY',        ';:v#(7F_=N{ZYu}-(8&9@g-L/|iZB^BA17y} w%_c+#.6A%4r)-WGA8)KUU1O%>c');
+define('AUTH_SALT',        '-:p(avGF?8$$sC7d$r9SAd$Ouj=xf#S!qfMrW#9VkZWIp-LC=Lz-SsA:B/N_?<g5');
+define('SECURE_AUTH_SALT', 'bDwo|M$4:H65Ss+,[V#b0V}O}-hS^4zD%-`4[n/0?LPGz F<:5Ppyh;a+`P}Aii/');
+define('LOGGED_IN_SALT',   '=7,rtbKujH0spnX,WhOra2bE_j,*0zA9.oh=?O`Qt y5o%|pzuLMFAc4BpjU;yo~');
+define('NONCE_SALT',       'Bq20n%W#9X(5R[fnr&,.XjgM7rb96qTkSf,fa`_G?Q7q++E@ 49_DYi&w-_LzuXj');
 
 /**#@-*/
 
@@ -64,12 +64,12 @@ $table_prefix  = 'wp_';
 /**
  * WordPress Localized Language, defaults to English.
  *
- * Change this to localize WordPress.  A corresponding MO file for the chosen
+ * Change this to localize WordPress. A corresponding MO file for the chosen
  * language must be installed to wp-content/languages. For example, install
- * de.mo to wp-content/languages and set WPLANG to 'de' to enable German
+ * de_DE.mo to wp-content/languages and set WPLANG to 'de_DE' to enable German
  * language support.
  */
-define ('WPLANG', '');
+define('WPLANG', '');
 
 /**
  * For developers: WordPress debugging mode.
@@ -78,7 +78,7 @@ define ('WPLANG', '');
  * It is strongly recommended that plugin and theme developers use WP_DEBUG
  * in their development environments.
  */
-define('WP_DEBUG', true);
+define('WP_DEBUG', false);
 
 /* That's all, stop editing! Happy blogging. */
 
