@@ -16,7 +16,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 		const VENUE_POST_TYPE = 'tribe_venue';
 		const ORGANIZER_POST_TYPE = 'tribe_organizer';
 		const PLUGIN_DOMAIN = 'tribe-events-calendar';
-		const VERSION = '2.0.5';
+		const VERSION = '2.0.8';
 		const FEED_URL = 'http://tri.be/category/products/feed/';
 		const INFO_API_URL = 'http://wpapi.org/api/plugin/the-events-calendar.php';
 		const WP_PLUGIN_URL = 'http://wordpress.org/extend/plugins/the-events-calendar/';
@@ -168,7 +168,6 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			require_once( $this->pluginPath.'public/template-tags/venue.php' );
 			require_once( $this->pluginPath.'public/template-tags/date.php' );
 			require_once( $this->pluginPath.'public/template-tags/link.php' );
-			if (is_admin()) require_once( $this->pluginPath.'public/template-tags/options.php' );
 
 			// Load Advanced Functions
 			require_once( $this->pluginPath.'public/advanced-functions/event.php' );
@@ -189,6 +188,11 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			require_once( 'tribe-the-events-calendar-import.class.php' );
 			require_once( 'tribe-debug-bar.class.php' );
 
+			// App Shop
+			if (!defined("TRIBE_DISABLE_SHOP") || TRIBE_DISABLE_SHOP !== true ){
+				require_once( 'tribe-app-shop.class.php' );
+			}
+
 		}
 
 		protected function addFilters() {
@@ -208,6 +212,9 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			add_filter( 'wp_nav_menu_objects', array( $this, 'add_current_menu_item_class_to_events'), null, 2);
 			
 			add_filter( 'generate_rewrite_rules', array( $this, 'filterRewriteRules' ) );
+			
+			if ( !is_admin() )
+				add_filter( 'get_comment_link', array( $this, 'newCommentLink' ), 10, 2 );
 		}
 
 		protected function addActions() {
@@ -219,6 +226,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			add_action( 'save_post', array( $this, 'save_venue_data' ), 16, 2 );
 			add_action( 'save_post', array( $this, 'save_organizer_data' ), 16, 2 );
 			add_action( 'save_post', array( $this, 'addToPostAuditTrail' ), 10, 2 );
+			add_action( 'save_post', array( $this, 'publishAssociatedTypes'), 25, 2 );
 			add_action( 'pre_get_posts', array( $this, 'setDate' ));
 			add_action( 'wp', array( $this, 'setDisplay' ));
 			add_action( 'tribe_events_post_errors', array( 'TribeEventsPostException', 'displayMessage' ) );
@@ -230,6 +238,10 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			add_action( "trash_" . TribeEvents::ORGANIZER_POST_TYPE, array($this, 'cleanupPostOrganizers'));
 			add_action( "wp_ajax_tribe_event_validation", array($this,'ajax_form_validate') );
 			add_action( 'tribe_debug', array( $this, 'renderDebug' ), 10, 2 );
+			
+			if( defined('TRIBE_SHOW_EVENT_AUDITING') && TRIBE_SHOW_EVENT_AUDITING )
+				add_action('tribe_events_details_bottom', array($this,'showAuditingData') );
+				
 			// noindex grid view
 			add_action('wp_head', array( $this, 'noindex_months' ) );
 			add_action( 'plugin_row_meta', array( $this, 'addMetaLinks' ), 10, 2 );
@@ -246,9 +258,17 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			add_action( 'tribe_settings_content_tab_help', array( $this, 'doHelpTab' ) );
 			// add-on compatibility
 			add_action( 'admin_notices', array( $this, 'checkAddOnCompatibility' ) );
+			
+			add_action( 'wp_before_admin_bar_render', array( $this, 'addToolbarItems' ), 10 );
+			add_action( 'admin_notices', array( $this, 'activationMessage' ) );
+			add_action( 'all_admin_notices', array( $this, 'addViewCalendar' ) );
+			add_action( 'admin_head', array( $this, 'setInitialMenuMetaBoxes' ), 500 );
+			add_action( 'plugin_action_links_' . trailingslashit( $this->pluginDir ) . 'the-events-calendar.php', array( $this, 'addLinksToPluginActions' ) );
+			add_action( 'admin_menu', array( $this, 'addHelpAdminMenuItem' ), 50 );
+			add_action( 'comment_form', array( $this, 'addHiddenRecurringField' ) );
 		}
 
-		public static function ecpActive( $version = '2.0.5' ) {
+		public static function ecpActive( $version = '2.0.7' ) {
 			return class_exists( 'TribeEventsPro' ) && defined('TribeEventsPro::VERSION') && version_compare( TribeEventsPro::VERSION, $version, '>=');
 		}
 
@@ -312,7 +332,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 		}
 		
 		public function maybeRenameOptions() {
-			if ( version_compare( get_option('tribe_events_db_version'), '2.0.5', '<' ) ) {
+			if ( version_compare( get_option('tribe_events_db_version'), '2.0.6', '<' ) ) {
 				$option_names = array(
 					'spEventsTemplate' => 'tribeEventsTemplate',
 					'spEventsBeforeHTML' => 'tribeEventsBeforeHTML',
@@ -327,7 +347,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 					unset( $current_options[$old_option_names[$i]] );
 				}
 				$this->setOptions( wp_parse_args( $new_options, $current_options ) );
-				update_option('tribe_events_db_version', '2.0.5');
+				update_option('tribe_events_db_version', '2.0.6');
 			}
 		}
 		
@@ -350,25 +370,51 @@ if ( !class_exists( 'TribeEvents' ) ) {
 		 * @return void
 		 */
 		public function checkAddOnCompatibility() {
-			$operator = apply_filters( 'tribe_tec_addons_comparison_operator', '>' );
+			$operator = apply_filters( 'tribe_tec_addons_comparison_operator', '!=' );
 			$output = '';
 			$bad_versions = array();
 			$tec_addons_required_versions = array();
-
+			$out_of_date_addons = array();
+			$update_link = get_admin_url() . 'plugins.php';
+			$tec_out_of_date = false;
+			
 			$tec_addons_required_versions = (array) apply_filters('tribe_tec_addons', $tec_addons_required_versions);
-
 			foreach ($tec_addons_required_versions as $plugin) {
 				if ( version_compare( $plugin['required_version'], self::VERSION, $operator) ) {
-					$bad_versions[$plugin['plugin_name']] = $plugin['required_version'];
+					if ( isset( $plugin['current_version'] ) )
+						$bad_versions[$plugin['plugin_name']] = $plugin['current_version'];
+					else
+						$bad_versions[$plugin['plugin_name']] = '';
+					if ( ( isset( $plugin['plugin_dir_file'] ) ) )				
+						$addon_short_path = $plugin['plugin_dir_file'];
+					else
+						$addon_short_path = null;
+				}
+				if ( version_compare( $plugin['required_version'], self::VERSION, '>' ) ) {
+					$tec_out_of_date = true;
 				}
 			}
-
-			if ( !empty($bad_versions) ) {
+			if ( $tec_out_of_date == true ) {
+				$plugin_short_path = basename( dirname( dirname( __FILE__ ) ) ) . '/the-events-calendar.php';
+				$upgrade_path = wp_nonce_url( add_query_arg( array( 'action' => 'upgrade-plugin', 'plugin' => $plugin_short_path ), get_admin_url() . 'update.php' ), 'upgrade-plugin_' . $plugin_short_path );
 				$output .= '<div class="error">';
-				foreach ($bad_versions as $plugin => $version) {
-					$output .= '<p>'.sprintf( __('Your version of %s requires version %s or higher of The Events Calendar (you are currently running %s). Visit %shelp%s for more information.', 'tribe-events-calendar'), $plugin, $version, self::VERSION, '<a href="http://shylock.local/moderntribe/wp-admin/options-general.php?page=tribe-settings&tab=help">', '</a>' ).'</p>';
-				}
+				$output .= '<p>' . sprintf( __('Your version of The Events Calendar is not up-to-date with one of your The Events Calendar add-ons. Please %supdate now.%s', 'tribe-events-calendar'), '<a href="' . $upgrade_path . '">', '</a>') .'</p>';
 				$output .= '</div>';
+			} else {
+				if ( !empty($bad_versions) ) {
+					foreach ($bad_versions as $plugin => $version) {
+						if ( $version )
+							$out_of_date_addons[] = $plugin . ' ' . $version;
+						else
+							$out_of_date_addons[] = $plugin;
+					}
+					if ( count( $out_of_date_addons ) == 1 && $addon_short_path ) {
+						$update_link = wp_nonce_url( add_query_arg( array( 'action' => 'upgrade-plugin', 'plugin' => $addon_short_path ), get_admin_url() . 'update.php' ), 'upgrade-plugin_' . $addon_short_path );
+					}
+					$output .= '<div class="error">';
+					$output .= '<p>'.sprintf( __('The following plugins are out of date: <b>%s</b>. Please %supdate now%s. All add-ons contain dependencies on The Events Calendar and will not function properly unless paired with the right version. %sWant to pair an older version%s?', 'tribe-events-calendar'), join( $out_of_date_addons, ', ' ), '<a href="' . $update_link . '">', '</a>', '<a href="http://tri.be/version-relationships-in-modern-tribe-pluginsadd-ons/">', '</a>' ).'</p>';
+					$output .= '</div>';
+				}
 			}
 			if ( current_user_can( 'edit_plugins' ) ) {
 				echo apply_filters('tribe_add_on_compatibility_errors', $output);
@@ -403,13 +449,35 @@ if ( !class_exists( 'TribeEvents' ) ) {
 
 			include_once($this->pluginPath.'admin-views/tribe-options-general.php');
 			include_once($this->pluginPath.'admin-views/tribe-options-templates.php');
+			
+			$tribe_licences_tab_fields = array(
+				'info-start' => array(
+					'type' => 'html',
+					'html' => '<div id="modern-tribe-info">'
+				),
+				'info-box-title' => array(
+					'type' => 'html',
+					'html' => '<h2>' . __('Licenses', 'tribe-events-calendar') . '</h2>',
+				),
+				'info-box-description' => array(
+					'type' => 'html',
+					'html' => '<p>' . __('For all of Modern Tribe\'s paid Add-ons, the license key you received when completing your purchase is what grants you access to future updates + support. Keep in mind that you do not have to enter your key below for the plugins to work! All functionality is available whether or not a key is present. However, you will not receive prompts for automatic updates without a key in place...and our support team won\'t be able to help you until it is added and current, either.</p><p>Each plugin/add-on has its own unique license key. Simply paste the keys into their appropriate fields on the list below, and give it a moment to validate. When the green expiration date appears alongside a "Valid" message, you\'ll be set. If you\'re seeing red message instead, either telling you the key isn\'t valid or is out of installs, it means your key was not accepted. Visit <a href="http://tri.be">http://tri.be</a>, log in and navigate to <i>Account Central -> Licenses</i> on the tri.be site to see if the key is tied to another site or past its expiration date. For more on automatic updates and using your license key, please <a href="http://tri.be/updating-the-plugin/">see this blog post</a>.</p><p>Not seeing an update but expecting one? In WordPress go to <i>Dashboard -> Updates</i> and click "Check Again".', 'tribe-events-calendar') . '</p>',
+				),
+				'info-end' => array(
+					'type' => 'html',
+					'html' => '</div>',
+				),
+			);
 
 			new TribeSettingsTab( 'general', __('General', 'tribe-events-calendar'), $generalTab );
 			new TribeSettingsTab( 'template', __('Template', 'tribe-events-calendar'), $templatesTab );
-			new TribeSettingsTab( 'licenses', __('Licenses', 'tribe-events-calendar'), array('priority' => '40',
-				'fields' => apply_filters('tribe_license_fields', array()) ) );
+			// If none of the addons are activated, do not show the licenses tab.
+			if ( class_exists( 'TribeEventsPro' ) || class_exists( 'Event_Tickets_PRO' ) || class_exists( 'TribeCommunityEvents' ) || class_exists( 'Tribe_FB_Importer' ) ) {
+				new TribeSettingsTab( 'licenses', __('Licenses', 'tribe-events-calendar'), array('priority' => '40',
+					'fields' => apply_filters('tribe_license_fields', $tribe_licences_tab_fields) ) );
+			}
 			new TribeSettingsTab( 'help', __('Help', 'tribe-events-calendar'), array('priority' => 60, 'show_save' => false) );
-
+			
 		}
 
 		public function doHelpTab() {
@@ -566,25 +634,27 @@ if ( !class_exists( 'TribeEvents' ) ) {
 
 		public function maybeAddEventTitle($title, $sep = null){
 			if(get_query_var('eventDisplay') == 'upcoming'){
-				$new_title = __("Upcoming Events", 'tribe-events-calendar'). ' '.$sep . ' ' . $title;
+				$new_title = apply_filters( 'tribe_upcoming_events_title', __("Upcoming Events", 'tribe-events-calendar'). ' '.$sep . ' ' . $title, $sep );
 			}elseif(get_query_var('eventDisplay') == 'past'){
-					$new_title = __("Past Events", 'tribe-events-calendar') . ' '. $sep . ' ' . $title;
+					$new_title = apply_filters( 'tribe_past_events_title', __("Past Events", 'tribe-events-calendar') . ' '. $sep . ' ' . $title, $sep );
 
 			}elseif(get_query_var('eventDisplay') == 'month'){
 				if(get_query_var('eventDate')){
-					$new_title = sprintf(__("Events for %s", 'tribe-events-calendar'),date_i18n("F, Y",strtotime(get_query_var('eventDate')))) . ' '. $sep . ' ' . $title;
+					$title_date = date_i18n("F, Y",strtotime(get_query_var('eventDate')));
+					$new_title = apply_filters( 'tribe_month_grid_view_title', sprintf(__("Events for %s", 'tribe-events-calendar'), $title_date) . ' '. $sep . ' ' . $title, $sep, $title_date );
 				}else{
-					$new_title = sprintf(__("Events this month", 'tribe-events-calendar'),get_query_var('eventDate')) . ' '. $sep . ' ' . $title;
+					$new_title = apply_filters( 'tribe_events_this_month_title', sprintf(__("Events this month", 'tribe-events-calendar'),get_query_var('eventDate')) . ' '. $sep . ' ' . $title, $sep );
 				}
 
 			} elseif(get_query_var('eventDisplay') == 'day') {
-				$new_title = sprintf(__("Events for %s", 'tribe-events-calendar'),date_i18n("F d, Y",strtotime(get_query_var('eventDate')))) . ' '. $sep . ' ' . $title;
+				$title_date = date_i18n("F d, Y",strtotime(get_query_var('eventDate')));
+				$new_title = apply_filters( 'tribe_events_day_view_title', sprintf(__("Events for %s", 'tribe-events-calendar'), $title_date) . ' '. $sep . ' ' . $title, $sep, $title_date );
          } elseif(get_query_var('post_type') == self::POSTTYPE && is_single() && $this->getOption('tribeEventsTemplate') != '' ) {
 				global $post;
 				$new_title = $post->post_title . ' '. $sep . ' ' . $title;
 			} elseif(get_query_var('post_type') == self::VENUE_POST_TYPE && $this->getOption('tribeEventsTemplate') != '' ) {
 				global $post;
-				$new_title = sprintf(__("Events at %s", 'tribe-events-calendar'), $post->post_title) . ' '. $sep . ' ' . $title;
+				$new_title = apply_filters( 'tribe_events_venue_view_title', sprintf(__("Events at %s", 'tribe-events-calendar'), $post->post_title) . ' '. $sep . ' ' . $title,  $sep );
 			} else {
 				return $title;
 			}
@@ -605,7 +675,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 		public function accessibleMonthForm() {
 			if ( isset($_GET['EventJumpToMonth']) && isset($_GET['EventJumpToYear'] )) {
 				$_GET['eventDisplay'] = 'month';
-				$_GET['eventDate'] = $_GET['EventJumpToYear'] . '-' . $_GET['EventJumpToMonth'];
+				$_GET['eventDate'] = intval($_GET['EventJumpToYear']) . '-' . intval($_GET['EventJumpToMonth']);
 			}
 		}
 
@@ -652,144 +722,154 @@ if ( !class_exists( 'TribeEvents' ) ) {
 		
 		private function addCapabilities() {
 			$role = get_role( 'administrator' );
-			$role->add_cap( 'edit_tribe_event' );
-			$role->add_cap( 'read_tribe_event' );
-			$role->add_cap( 'delete_tribe_event' );
-			$role->add_cap( 'delete_tribe_events');
-			$role->add_cap( 'edit_tribe_events' );
-			$role->add_cap( 'edit_others_tribe_events' );
-			$role->add_cap( 'delete_others_tribe_events' );
-			$role->add_cap( 'publish_tribe_events' );
-			$role->add_cap( 'edit_published_tribe_events' );
-			$role->add_cap( 'delete_published_tribe_events' );
-			$role->add_cap( 'delete_private_tribe_events' );
-			$role->add_cap( 'edit_private_tribe_events' );
-			$role->add_cap( 'read_private_tribe_events' );
-		
-			$role->add_cap( 'edit_tribe_venue' );
-			$role->add_cap( 'read_tribe_venue' );
-			$role->add_cap( 'delete_tribe_venue' );
-			$role->add_cap( 'delete_tribe_venues');
-			$role->add_cap( 'edit_tribe_venues' );
-			$role->add_cap( 'edit_others_tribe_venues' );
-			$role->add_cap( 'delete_others_tribe_venues' );
-			$role->add_cap( 'publish_tribe_venues' );
-			$role->add_cap( 'edit_published_tribe_venues' );
-			$role->add_cap( 'delete_published_tribe_venues' );
-			$role->add_cap( 'delete_private_tribe_venues' );
-			$role->add_cap( 'edit_private_tribe_venues' );
-			$role->add_cap( 'read_private_tribe_venues' );
-		
-			$role->add_cap( 'edit_tribe_organizer' );
-			$role->add_cap( 'read_tribe_organizer' );
-			$role->add_cap( 'delete_tribe_organizer' );
-			$role->add_cap( 'delete_tribe_organizers');
-			$role->add_cap( 'edit_tribe_organizers' );
-			$role->add_cap( 'edit_others_tribe_organizers' );
-			$role->add_cap( 'delete_others_tribe_organizers' );
-			$role->add_cap( 'publish_tribe_organizers' );
-			$role->add_cap( 'edit_published_tribe_organizers' );
-			$role->add_cap( 'delete_published_tribe_organizers' );
-			$role->add_cap( 'delete_private_tribe_organizers' );
-			$role->add_cap( 'edit_private_tribe_organizers' );
-			$role->add_cap( 'read_private_tribe_organizers' );
+			if ( $role ) {
+				$role->add_cap( 'edit_tribe_event' );
+				$role->add_cap( 'read_tribe_event' );
+				$role->add_cap( 'delete_tribe_event' );
+				$role->add_cap( 'delete_tribe_events');
+				$role->add_cap( 'edit_tribe_events' );
+				$role->add_cap( 'edit_others_tribe_events' );
+				$role->add_cap( 'delete_others_tribe_events' );
+				$role->add_cap( 'publish_tribe_events' );
+				$role->add_cap( 'edit_published_tribe_events' );
+				$role->add_cap( 'delete_published_tribe_events' );
+				$role->add_cap( 'delete_private_tribe_events' );
+				$role->add_cap( 'edit_private_tribe_events' );
+				$role->add_cap( 'read_private_tribe_events' );
+			
+				$role->add_cap( 'edit_tribe_venue' );
+				$role->add_cap( 'read_tribe_venue' );
+				$role->add_cap( 'delete_tribe_venue' );
+				$role->add_cap( 'delete_tribe_venues');
+				$role->add_cap( 'edit_tribe_venues' );
+				$role->add_cap( 'edit_others_tribe_venues' );
+				$role->add_cap( 'delete_others_tribe_venues' );
+				$role->add_cap( 'publish_tribe_venues' );
+				$role->add_cap( 'edit_published_tribe_venues' );
+				$role->add_cap( 'delete_published_tribe_venues' );
+				$role->add_cap( 'delete_private_tribe_venues' );
+				$role->add_cap( 'edit_private_tribe_venues' );
+				$role->add_cap( 'read_private_tribe_venues' );
+			
+				$role->add_cap( 'edit_tribe_organizer' );
+				$role->add_cap( 'read_tribe_organizer' );
+				$role->add_cap( 'delete_tribe_organizer' );
+				$role->add_cap( 'delete_tribe_organizers');
+				$role->add_cap( 'edit_tribe_organizers' );
+				$role->add_cap( 'edit_others_tribe_organizers' );
+				$role->add_cap( 'delete_others_tribe_organizers' );
+				$role->add_cap( 'publish_tribe_organizers' );
+				$role->add_cap( 'edit_published_tribe_organizers' );
+				$role->add_cap( 'delete_published_tribe_organizers' );
+				$role->add_cap( 'delete_private_tribe_organizers' );
+				$role->add_cap( 'edit_private_tribe_organizers' );
+				$role->add_cap( 'read_private_tribe_organizers' );
+			}
 			 
 			$editor = get_role( 'editor' );
-			$editor->add_cap( 'edit_tribe_event' );
-			$editor->add_cap( 'read_tribe_event' );
-			$editor->add_cap( 'delete_tribe_event' );
-			$editor->add_cap( 'delete_tribe_events');
-			$editor->add_cap( 'edit_tribe_events' );
-			$editor->add_cap( 'edit_others_tribe_events' );
-			$editor->add_cap( 'delete_others_tribe_events' );
-			$editor->add_cap( 'publish_tribe_events' );
-			$editor->add_cap( 'edit_published_tribe_events' );
-			$editor->add_cap( 'delete_published_tribe_events' );
-			$editor->add_cap( 'delete_private_tribe_events' );
-			$editor->add_cap( 'edit_private_tribe_events' );
-			$editor->add_cap( 'read_private_tribe_events' );
-		
-			$editor->add_cap( 'edit_tribe_venue' );
-			$editor->add_cap( 'read_tribe_venue' );
-			$editor->add_cap( 'delete_tribe_venue' );
-			$editor->add_cap( 'delete_tribe_venues');
-			$editor->add_cap( 'edit_tribe_venues' );
-			$editor->add_cap( 'edit_others_tribe_venues' );
-			$editor->add_cap( 'delete_others_tribe_venues' );
-			$editor->add_cap( 'publish_tribe_venues' );
-			$editor->add_cap( 'edit_published_tribe_venues' );
-			$editor->add_cap( 'delete_published_tribe_venues' );
-			$editor->add_cap( 'delete_private_tribe_venues' );
-			$editor->add_cap( 'edit_private_tribe_venues' );
-			$editor->add_cap( 'read_private_tribe_venues' );
-		
-			$editor->add_cap( 'edit_tribe_organizer' );
-			$editor->add_cap( 'read_tribe_organizer' );
-			$editor->add_cap( 'delete_tribe_organizer' );
-			$editor->add_cap( 'delete_tribe_organizers');
-			$editor->add_cap( 'edit_tribe_organizers' );
-			$editor->add_cap( 'edit_others_tribe_organizers' );
-			$editor->add_cap( 'delete_others_tribe_organizers' );
-			$editor->add_cap( 'publish_tribe_organizers' );
-			$editor->add_cap( 'edit_published_tribe_organizers' );
-			$editor->add_cap( 'delete_published_tribe_organizers' );
-			$editor->add_cap( 'delete_private_tribe_organizers' );
-			$editor->add_cap( 'edit_private_tribe_organizers' );
-			$editor->add_cap( 'read_private_tribe_organizers' );
-			 
+			if ( $editor ) {
+				$editor->add_cap( 'edit_tribe_event' );
+				$editor->add_cap( 'read_tribe_event' );
+				$editor->add_cap( 'delete_tribe_event' );
+				$editor->add_cap( 'delete_tribe_events');
+				$editor->add_cap( 'edit_tribe_events' );
+				$editor->add_cap( 'edit_others_tribe_events' );
+				$editor->add_cap( 'delete_others_tribe_events' );
+				$editor->add_cap( 'publish_tribe_events' );
+				$editor->add_cap( 'edit_published_tribe_events' );
+				$editor->add_cap( 'delete_published_tribe_events' );
+				$editor->add_cap( 'delete_private_tribe_events' );
+				$editor->add_cap( 'edit_private_tribe_events' );
+				$editor->add_cap( 'read_private_tribe_events' );
+			
+				$editor->add_cap( 'edit_tribe_venue' );
+				$editor->add_cap( 'read_tribe_venue' );
+				$editor->add_cap( 'delete_tribe_venue' );
+				$editor->add_cap( 'delete_tribe_venues');
+				$editor->add_cap( 'edit_tribe_venues' );
+				$editor->add_cap( 'edit_others_tribe_venues' );
+				$editor->add_cap( 'delete_others_tribe_venues' );
+				$editor->add_cap( 'publish_tribe_venues' );
+				$editor->add_cap( 'edit_published_tribe_venues' );
+				$editor->add_cap( 'delete_published_tribe_venues' );
+				$editor->add_cap( 'delete_private_tribe_venues' );
+				$editor->add_cap( 'edit_private_tribe_venues' );
+				$editor->add_cap( 'read_private_tribe_venues' );
+			
+				$editor->add_cap( 'edit_tribe_organizer' );
+				$editor->add_cap( 'read_tribe_organizer' );
+				$editor->add_cap( 'delete_tribe_organizer' );
+				$editor->add_cap( 'delete_tribe_organizers');
+				$editor->add_cap( 'edit_tribe_organizers' );
+				$editor->add_cap( 'edit_others_tribe_organizers' );
+				$editor->add_cap( 'delete_others_tribe_organizers' );
+				$editor->add_cap( 'publish_tribe_organizers' );
+				$editor->add_cap( 'edit_published_tribe_organizers' );
+				$editor->add_cap( 'delete_published_tribe_organizers' );
+				$editor->add_cap( 'delete_private_tribe_organizers' );
+				$editor->add_cap( 'edit_private_tribe_organizers' );
+				$editor->add_cap( 'read_private_tribe_organizers' );
+			}
+			
 			$author = get_role( 'author' );
-			$author->add_cap( 'edit_tribe_event' );
-			$author->add_cap( 'read_tribe_event' );
-			$author->add_cap( 'delete_tribe_event' );
-			$author->add_cap( 'delete_tribe_events' );
-			$author->add_cap( 'edit_tribe_events' );
-			$author->add_cap( 'publish_tribe_events' );
-			$author->add_cap( 'edit_published_tribe_events' );
-			$author->add_cap( 'delete_published_tribe_events' );
-			
-			$author->add_cap( 'edit_tribe_venue' );
-			$author->add_cap( 'read_tribe_venue' );
-			$author->add_cap( 'delete_tribe_venue' );
-			$author->add_cap( 'delete_tribe_venues' );
-			$author->add_cap( 'edit_tribe_venues' );
-			$author->add_cap( 'publish_tribe_venues' );
-			$author->add_cap( 'edit_published_tribe_venues' );
-			$author->add_cap( 'delete_published_tribe_venues' );
-			
-			$author->add_cap( 'edit_tribe_organizer' );
-			$author->add_cap( 'read_tribe_organizer' );
-			$author->add_cap( 'delete_tribe_organizer' );
-			$author->add_cap( 'delete_tribe_organizers' );
-			$author->add_cap( 'edit_tribe_organizers' );
-			$author->add_cap( 'publish_tribe_organizers' );
-			$author->add_cap( 'edit_published_tribe_organizers' );
-			$author->add_cap( 'delete_published_tribe_organizers' );
+			if ( $author ) {		 
+				$author->add_cap( 'edit_tribe_event' );
+				$author->add_cap( 'read_tribe_event' );
+				$author->add_cap( 'delete_tribe_event' );
+				$author->add_cap( 'delete_tribe_events' );
+				$author->add_cap( 'edit_tribe_events' );
+				$author->add_cap( 'publish_tribe_events' );
+				$author->add_cap( 'edit_published_tribe_events' );
+				$author->add_cap( 'delete_published_tribe_events' );
+				
+				$author->add_cap( 'edit_tribe_venue' );
+				$author->add_cap( 'read_tribe_venue' );
+				$author->add_cap( 'delete_tribe_venue' );
+				$author->add_cap( 'delete_tribe_venues' );
+				$author->add_cap( 'edit_tribe_venues' );
+				$author->add_cap( 'publish_tribe_venues' );
+				$author->add_cap( 'edit_published_tribe_venues' );
+				$author->add_cap( 'delete_published_tribe_venues' );
+				
+				$author->add_cap( 'edit_tribe_organizer' );
+				$author->add_cap( 'read_tribe_organizer' );
+				$author->add_cap( 'delete_tribe_organizer' );
+				$author->add_cap( 'delete_tribe_organizers' );
+				$author->add_cap( 'edit_tribe_organizers' );
+				$author->add_cap( 'publish_tribe_organizers' );
+				$author->add_cap( 'edit_published_tribe_organizers' );
+				$author->add_cap( 'delete_published_tribe_organizers' );
+			}
 			
 			$contributor = get_role( 'contributor' );
-			$contributor->add_cap( 'edit_tribe_event' );
-			$contributor->add_cap( 'read_tribe_event' );
-			$contributor->add_cap( 'delete_tribe_event' );
-			$contributor->add_cap( 'delete_tribe_events' );
-			$contributor->add_cap( 'edit_tribe_events' );
-			
-			$contributor->add_cap( 'edit_tribe_venue' );
-			$contributor->add_cap( 'read_tribe_venue' );
-			$contributor->add_cap( 'delete_tribe_venue' );
-			$contributor->add_cap( 'delete_tribe_venues' );
-			$contributor->add_cap( 'edit_tribe_venues');
-			
-			$contributor->add_cap( 'edit_tribe_organizer' );
-			$contributor->add_cap( 'read_tribe_organizer' );
-			$contributor->add_cap( 'delete_tribe_organizer' );
-			$contributor->add_cap( 'delete_tribe_organizers' );
-			$contributor->add_cap( 'edit_tribe_organizers' );
+			if ( $contributor ) {
+				$contributor->add_cap( 'edit_tribe_event' );
+				$contributor->add_cap( 'read_tribe_event' );
+				$contributor->add_cap( 'delete_tribe_event' );
+				$contributor->add_cap( 'delete_tribe_events' );
+				$contributor->add_cap( 'edit_tribe_events' );
 				
-			$subscriber = get_role( 'subscriber' );
-			$subscriber->add_cap( 'read_tribe_event' );
+				$contributor->add_cap( 'edit_tribe_venue' );
+				$contributor->add_cap( 'read_tribe_venue' );
+				$contributor->add_cap( 'delete_tribe_venue' );
+				$contributor->add_cap( 'delete_tribe_venues' );
+				$contributor->add_cap( 'edit_tribe_venues');
+				
+				$contributor->add_cap( 'edit_tribe_organizer' );
+				$contributor->add_cap( 'read_tribe_organizer' );
+				$contributor->add_cap( 'delete_tribe_organizer' );
+				$contributor->add_cap( 'delete_tribe_organizers' );
+				$contributor->add_cap( 'edit_tribe_organizers' );
+			}
 			
-			$subscriber->add_cap( 'read_tribe_organizer' );
-
-			$subscriber->add_cap( 'read_tribe_venue' );
+			$subscriber = get_role( 'subscriber' );
+			if ( $subscriber ) {
+				$subscriber->add_cap( 'read_tribe_event' );
+				
+				$subscriber->add_cap( 'read_tribe_organizer' );
+	
+				$subscriber->add_cap( 'read_tribe_venue' );
+			}
 		}
 
 		public function registerPostType() {
@@ -803,7 +883,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			register_taxonomy( self::TAXONOMY, self::POSTTYPE, array(
 				'hierarchical' => true,
 				'update_count_callback' => '',
-				'rewrite' => array('slug'=> $this->taxRewriteSlug),
+				'rewrite' => array( 'slug'=> $this->taxRewriteSlug, 'with_front' => false ),
 				'public' => true,
 				'show_ui' => true,
 				'labels' => $this->taxonomyLabels,
@@ -1471,6 +1551,11 @@ if ( !class_exists( 'TribeEvents' ) ) {
 					if ( $secondary )
 						$month = add_query_arg( array( 'eventDate' => $secondary ), $month );
 					return $month;
+				case 'day':
+					$month = add_query_arg( array( 'eventDisplay' => 'day'), $eventUrl );
+					if ( $secondary )
+						$month = add_query_arg( array( 'eventDate' => $secondary ), $month );
+					return $month;
 				case 'upcoming':
 					return add_query_arg( array( 'eventDisplay' => 'upcoming'), $eventUrl );
 				case 'past':
@@ -1485,8 +1570,8 @@ if ( !class_exists( 'TribeEvents' ) ) {
 					return home_url() . '/?ical';
 				case 'single':
 					global $post;
-					$post = $secondary ? $secondary : $post;
-					$link = trailingslashit(get_permalink($post));
+					$p = $secondary ? $secondary : $post;
+					$link = trailingslashit(get_permalink($p));
 					return $link;
 				case 'all':
 					remove_filter( 'post_type_link', array($this, 'addDateToRecurringEvents') );					
@@ -1677,7 +1762,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			if ( !wp_verify_nonce( $_POST['ecp_nonce'], TribeEvents::POSTTYPE ) )
 				return;
 	
-			if ( !current_user_can( 'publish_posts' ) )
+			if ( !current_user_can( 'edit_tribe_events' ) )
 				return;
 
 			$_POST['Organizer'] = stripslashes_deep($_POST['organizer']);
@@ -1689,10 +1774,10 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			 * editing the venue/organizer from within the event.
 			 */
 			if( isset($_POST['Venue']['VenueID']) && !empty($_POST['Venue']['VenueID']) && class_exists('TribeEventsPro') )
-				$_POST['Venue'] = array('VenueID' => $_POST['Venue']['VenueID']);
+				$_POST['Venue'] = array('VenueID' => intval($_POST['Venue']['VenueID']));
 
 			if( isset($_POST['Organizer']['OrganizerID']) && !empty($_POST['Organizer']['OrganizerID']) && class_exists('TribeEventsPro') )
-				$_POST['Organizer'] = array('OrganizerID' => $_POST['Organizer']['OrganizerID']);
+				$_POST['Organizer'] = array('OrganizerID' => intval($_POST['Organizer']['OrganizerID']));
 
 
 			TribeEventsAPI::saveEventMeta($postId, $_POST, $post);
@@ -1719,8 +1804,20 @@ if ( !class_exists( 'TribeEvents' ) ) {
 				} else {
 					return;
 				}
-				update_post_meta( $postId, $post_type . 'Origin', apply_filters( 'post-origin', 'events-calendar' ) );
+
+				//only set origin once
+				$origin = get_post_meta($postId , $post_type . 'Origin', true);
+				if( !$origin )
+					add_post_meta( $postId, $post_type . 'Origin', apply_filters( 'tribe-post-origin', 'events-calendar', $postId, $post ) );
 			}
+		}
+
+		public function showAuditingData(){
+
+			$events_audit_trail_template = $this->pluginPath . 'admin-views/events-audit-trail.php';
+			$events_audit_trail_template = apply_filters('tribe_events_audit_trail_template', $events_audit_trail_template);
+			include( $events_audit_trail_template );
+		
 		}
 
 		/**
@@ -1748,12 +1845,89 @@ if ( !class_exists( 'TribeEvents' ) ) {
 				if ( !isset( $post_audit_trail ) || !$post_audit_trail || !is_array($post_audit_trail) ) {
 					$post_audit_trail = array();
 				}
-				$post_audit_trail[] = array( apply_filters( 'post-audit-trail', 'events-calendar' ), time() );
+				$post_audit_trail[] = array( apply_filters( 'tribe-post-origin', 'events-calendar' ), time() );
 				update_post_meta( $postId, $post_type . 'AuditTrail', $post_audit_trail );
 			}
 		}
 
-		//** If you are saving a new venu separate from an event
+		/**
+		 * Publishes associated venue/organizer when an event is published
+		 *
+		 * @since 2.0.6
+		 * @author nciske
+		 * @param int $postId, the post ID
+		 * @param stdClass $post, the post object
+		 * @return void
+		 */
+		public function publishAssociatedTypes( $postID, $post ) {
+			
+			remove_action( 'save_post', array( $this, 'addEventMeta' ), 15, 2 );
+			remove_action( 'save_post', array( $this, 'save_venue_data' ), 16, 2 );
+			remove_action( 'save_post', array( $this, 'save_organizer_data' ), 16, 2 );
+			remove_action( 'save_post', array( $this, 'addToPostAuditTrail' ), 10, 2 );
+
+			remove_action( 'save_post', array( $this, 'publishAssociatedTypes'), 25, 2 );
+			
+			// Only continue if the post being published is an event
+			if ( wp_is_post_autosave( $postID ) || $post->post_status == 'auto-draft' ||
+						isset($_GET['bulk_edit']) || (isset($_REQUEST['action']) && $_REQUEST['action'] == 'inline-save') || 
+						($post->post_type != self::POSTTYPE && $postID)) {
+				return;
+			}
+				
+				//echo '$postID='.$postID;
+				
+				global $wpdb;
+				
+				if( isset( $post->post_status ) && $post->post_status == 'publish' ){
+				
+					//get venue and organizer and publish them
+
+					$pm = get_post_custom($post->ID);
+					
+					if( isset($pm['_EventVenueID']) && $pm['_EventVenueID'] ){
+						
+						if( is_array($pm['_EventVenueID']) ){
+							$venue_id = current($pm['_EventVenueID']);
+						}else{
+							$venue_id = $pm['_EventVenueID'];
+						}
+						
+						
+						$venue_post = array(
+							'ID' => $venue_id, 
+							'post_status' => 'publish',
+						);
+						
+						//wp_update_post( $venue_post );
+						$sql = "UPDATE $wpdb->posts SET post_status = 'publish' WHERE ID = '".intval($venue_id)."' AND post_type = '".TribeEvents::VENUE_POST_TYPE."' AND post_status != 'publish'";
+						$wpdb->query($sql);
+						
+					}
+	
+					if( isset($pm['_EventOrganizerID']) && $pm['_EventOrganizerID'] ){
+						
+						if( is_array($pm['_EventOrganizerID']) ){
+							$org_id = current($pm['_EventOrganizerID']);
+						}else{
+							$org_id = $pm['_EventOrganizerID'];
+						}
+						
+
+						$org_post = array(
+							'ID' => $org_id, 
+							'post_status' => 'publish',
+						);
+
+						//wp_update_post( $org_post );
+						$sql = "UPDATE $wpdb->posts SET post_status = 'publish' WHERE ID = '".intval($org_id)."' AND post_type = '".TribeEvents::ORGANIZER_POST_TYPE."' AND post_status != 'publish'";
+						$wpdb->query($sql);
+					}
+				}
+				
+		}
+
+		//** If you are saving a new venue separate from an event
 		public function save_venue_data( $postID = null, $post=null ) {
 			global $_POST;
 
@@ -1768,7 +1942,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 				return;
 			}
 			
-			if ( !current_user_can( 'publish_posts' ) )
+			if ( !current_user_can( 'edit_tribe_venues' ) )
 				return;					
 
 			//There is a possibility to get stuck in an infinite loop. 
@@ -1783,8 +1957,8 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			return $venue_id;
 		}
 
-		function get_venue_info($p = null){
-			$r = new WP_Query(array('post_type' => self::VENUE_POST_TYPE, 'nopaging' => 1, 'post_status' => 'publish', 'ignore_sticky_posts ' => 1,'orderby'=>'title', 'order'=>'ASC','p' => $p));
+		function get_venue_info($p = null, $post_status='publish'){
+			$r = new WP_Query(array('post_type' => self::VENUE_POST_TYPE, 'nopaging' => 1, 'post_status' => $post_status, 'ignore_sticky_posts ' => 1,'orderby'=>'title', 'order'=>'ASC','p' => $p));
 			if ($r->have_posts()) :
 				return $r->posts;
 			endif;
@@ -1794,7 +1968,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 		//** If you are saving a new organizer along with the event, we will do this:
 		public function save_organizer_data( $postID = null, $post=null ) {
 			global $_POST;
-
+			
 			// don't do anything on autosave or auto-draft either or massupdates
 			// Or inline saves, or data being posted without a organizer Or
 			// finally, called from the save_post action, but on save_posts that
@@ -1809,7 +1983,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 				return;
 			}
 			
-			if ( !current_user_can( 'publish_posts' ) )
+			if ( !current_user_can( 'edit_tribe_organizers' ) )
 				return;										
 
 			//There is a possibility to get stuck in an infinite loop. 
@@ -1862,8 +2036,8 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			}
 		}
 
-		function get_organizer_info($p = null){
-			$r = new WP_Query(array('post_type' => self::ORGANIZER_POST_TYPE, 'nopaging' => 1, 'post_status' => 'publish', 'ignore_sticky_posts ' => 1,'orderby'=>'title', 'order'=>'ASC', 'p' => $p));
+		function get_organizer_info($p = null, $post_status='publish'){
+			$r = new WP_Query(array('post_type' => self::ORGANIZER_POST_TYPE, 'nopaging' => 1, 'post_status' => $post_status, 'ignore_sticky_posts ' => 1,'orderby'=>'title', 'order'=>'ASC', 'p' => $p));
 			if ($r->have_posts()) :
 				return $r->posts;
 			endif;
@@ -1898,7 +2072,12 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			
 			$options = '';
 			$style = '';
-			$postId = $post->ID;
+			
+			if(isset($post->ID)){
+				$postId = $post->ID;
+			}else{
+				$postId = 0;
+			}
 			
 				foreach ( $this->metaTags as $tag ) {
 					if ( $postId && $saved ) { //if there is a post AND the post has been saved at least once.
@@ -1913,7 +2092,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 						
 						//allow posted data to override default data
 						if( isset($_POST['Event'.$cleaned_tag]) ){
-							$$tag = $_POST['Event'.$cleaned_tag];
+							$$tag = stripslashes_deep($_POST['Event'.$cleaned_tag]);
 						}else{
 							$$tag = (class_exists('TribeEventsPro') && $this->defaultValueReplaceEnabled() ) ? tribe_get_option('eventsDefault'.$cleaned_tag) : "";
 						}
@@ -1928,7 +2107,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 				foreach($this->organizerTags as $tag) {
 					$cleaned_tag = str_replace('_Organizer','',$tag);
 					if( isset($_POST['organizer'][$cleaned_tag]) )
-						$$tag = $_POST['organizer'][$cleaned_tag];
+						$$tag = stripslashes_deep($_POST['organizer'][$cleaned_tag]);
 				}
 			}
 
@@ -1957,7 +2136,7 @@ if ( !class_exists( 'TribeEvents' ) ) {
 					}
 
 					if( isset($_POST['venue'][$cleaned_tag]) )
-						$$var_name = $_POST['venue'][$cleaned_tag];
+						$$var_name = stripslashes_deep($_POST['venue'][$cleaned_tag]);
 
 				}
 
@@ -1971,9 +2150,9 @@ if ( !class_exists( 'TribeEvents' ) ) {
 				
 				if( isset($_POST['venue']['Country']) ){
 					if( $_POST['venue']['Country'] == 'United States' ){
-						$_VenueStateProvince = $_POST['venue']['State'];
+						$_VenueStateProvince = stripslashes_deep($_POST['venue']['State']);
 					}else{
-						$_VenueStateProvince = $_POST['venue']['Province'];
+						$_VenueStateProvince = stripslashes_deep($_POST['venue']['Province']);
 					}
 				}
 
@@ -2042,11 +2221,11 @@ if ( !class_exists( 'TribeEvents' ) ) {
 
 			if($post->post_type == self::VENUE_POST_TYPE){
 			
-				if( (is_admin() && isset($_GET['post']) && $_GET['post']) || (!is_admin() && isset($_GET['tribe_venue_id']) && $_GET['tribe_venue_id']) )
+				if( (is_admin() && isset($_GET['post']) && $_GET['post']) || (!is_admin() && isset($postId) ) )
 					$saved = true;
 			
 				foreach ( $this->venueTags as $tag ) {
-					if ( $postId && $saved ) { //if there is a post AND the post has been saved at least once.
+					if ( $postId && isset( $saved ) && $saved ) { //if there is a post AND the post has been saved at least once.
 						$$tag = esc_html(get_post_meta( $postId, $tag, true ));
 					} else {
 						$cleaned_tag = str_replace('_Venue','',$tag);
@@ -2081,10 +2260,10 @@ if ( !class_exists( 'TribeEvents' ) ) {
 			$style = '';
 			$postId = $post->ID;
 			$saved = false;
-
+			
 			if($post->post_type == self::ORGANIZER_POST_TYPE){
 
-				if( (is_admin() && isset($_GET['post']) && $_GET['post']) || (!is_admin() && isset($_GET['tribe_organizer_id']) && $_GET['tribe_organizer_id']) )
+				if( (is_admin() && isset($_GET['post']) && $_GET['post']) || (!is_admin() && isset($postId) ))
 					$saved = true;
 			
 				foreach ( $this->organizerTags as $tag ) {
@@ -2416,6 +2595,210 @@ if ( !class_exists( 'TribeEvents' ) ) {
 				$termlink = esc_url(trailingslashit(tribe_get_events_link().'tag/'.$term->name));
 			}
 			return $termlink;
+		}
+		
+		/**
+		 * Add the buttons/dropdown to the admin toolbar
+		 *
+		 * @since 2.0.7
+		 * @return null
+		 */
+		public function addToolbarItems() {
+			global $wp_admin_bar;
+			
+			$wp_admin_bar->add_menu( array(
+				'id' => 'tribe-events',
+				'title' => __( 'Events', 'tribe-events-calendar' ),
+				'href' => $this->getLink( 'home' )
+			) );
+			
+			$wp_admin_bar->add_group( array(
+				'id' => 'tribe-events-group',
+				'parent' => 'tribe-events'
+			) );
+			
+			$wp_admin_bar->add_group( array(
+				'id' => 'tribe-events-add-ons-group',
+				'parent' => 'tribe-events'
+			) );
+			
+			$wp_admin_bar->add_group( array(
+				'id' => 'tribe-events-settings-group',
+				'parent' => 'tribe-events'
+			) );
+			
+			$wp_admin_bar->add_group( array(
+				'id' => 'tribe-events-import-group',
+				'parent' => 'tribe-events-add-ons-group'
+			) );
+			
+			$wp_admin_bar->add_menu( array(
+				'id' => 'tribe-events-view-calendar',
+				'title' => __( 'View Calendar', 'tribe-events-calendar' ),
+				'href' => $this->getLink( 'home' ),
+				'parent' => 'tribe-events-group'
+			) );
+			
+			if( current_user_can( 'edit_tribe_events' ) ) {
+				$wp_admin_bar->add_menu( array(
+					'id' => 'tribe-events-add-event',
+					'title' => __( 'Add Event', 'tribe-events-calendar' ),
+					'href' => trailingslashit( get_admin_url() ) . 'post-new.php?post_type=' . self::POSTTYPE,
+					'parent' => 'tribe-events-group'
+				) );
+			}
+			
+			if( current_user_can( 'edit_tribe_events' ) ) {
+				$wp_admin_bar->add_menu( array(
+					'id' => 'tribe-events-edit-events',
+					'title' => __( 'Edit Events', 'tribe-events-calendar' ),
+					'href' => trailingslashit( get_admin_url() ) . 'edit.php?post_type=' . self::POSTTYPE,
+					'parent' => 'tribe-events-group'
+				) );
+			}
+						
+			if ( current_user_can( 'manage_options' ) ) {			
+				$wp_admin_bar->add_menu( array(
+					'id' => 'tribe-events-settings',
+					'title' => __( 'Settings', 'tribe-events-calendar' ),
+					'parent' => 'tribe-events-settings-group'
+				) );
+			}
+			
+			if ( current_user_can( 'manage_options' ) ) {			
+				$wp_admin_bar->add_menu( array(
+					'id' => 'tribe-events-settings-sub',
+					'title' => __( 'Events', 'tribe-events-calendar' ),
+					'href' => trailingslashit( get_admin_url() ) . 'edit.php?post_type=' . self::POSTTYPE . '&page=tribe-events-calendar',
+					'parent' => 'tribe-events-settings'
+				) );
+			}
+
+			if ( current_user_can( 'manage_options' ) ) {			
+				$wp_admin_bar->add_menu( array(
+					'id' => 'tribe-events-help',
+					'title' => __( 'Help', 'tribe-events-calendar' ),
+					'href' => trailingslashit( get_admin_url() ) . 'edit.php?post_type=' . self::POSTTYPE . '&page=tribe-events-calendar&tab=help',
+					'parent' => 'tribe-events-settings-group'
+				) );
+			}
+		}
+		
+		/**
+		 * Displays activation welcome admin notice.
+		 *
+		 * @since 2.0.8
+		 * @author PaulHughes01
+		 *
+		 * @return void
+		 */
+		public function activationMessage() {
+			$has_been_activated = $this->getOption( 'welcome_notice', false );
+			if ( !$has_been_activated ) {
+				echo '<div class="updated tribe-notice"><p>'.sprintf( __('Welcome to The Events Calendar! Your events calendar can be found at %s. To change the events slug, visit %sEvents -> Settings%s.', 'tribe-events-calendar'), '<a href="' . $this->getLink() .'">' . $this->getLink() . '</a>', '<i><a href="' . add_query_arg( array( 'post_type' => self::POSTTYPE, 'page' => 'tribe-events-calendar' ), admin_url( 'edit.php' ) ) . '">', '</i></a>' ).'</p></div>';
+				$this->setOption( 'welcome_notice', true );
+			}
+		}
+		
+		/**
+		 * Resets the option such that the activation message is again displayed on reactivation.
+		 *
+		 * @since 2.0.8
+		 * @author PaulHughes01
+		 *
+		 * @return void
+		 */
+		public function resetActivationMessage() {
+			$tec = TribeEvents::instance();
+			$tec->setOption( 'welcome_notice', false );
+		}
+		
+		/**
+		 * Displays the View Calendar link at the top of the Events list in admin.
+		 *
+		 * @since 2.0.8
+		 * @author PaulHughes01
+		 *
+		 * @return void
+		 */
+		public function addViewCalendar() {
+			global $current_screen;
+			if ( $current_screen->id == 'edit-' . self::POSTTYPE )
+				echo '<div class="view-calendar-link-div"><h2 class="wrap"><a class="add-new-h2 view-calendar-link" href="' . $this->getLink() . '">' . __( 'View Calendar', 'tribe-events-calendar' ) . '</a></h2></div>';
+		}
+		
+		/**
+		 * Set the menu-edit-page to default display the events-related items.
+		 *
+		 * @since 2.0.8
+		 * @author PaulHughes01
+		 *
+		 * @return void
+		 */
+		public function setInitialMenuMetaBoxes() {
+			global $current_screen;
+			if ( $current_screen->id == 'nav-menus' ) {
+				$user = wp_get_current_user();
+				if ( !get_user_option( 'tribe_setDefaultNavMenuBoxes', $user->ID ) ) {
+					
+					$current_hidden_boxes = array();
+					$current_hidden_boxes =  get_user_option( 'metaboxhidden_nav-menus', $user->ID );
+					if ( $array_key = array_search( 'add-' . self::POSTTYPE, $current_hidden_boxes ) )
+						unset( $current_hidden_boxes[$array_key] );
+					if ( $array_key = array_search( 'add-' . self::VENUE_POST_TYPE, $current_hidden_boxes ) )
+						unset( $current_hidden_boxes[$array_key] );
+					if ( $array_key = array_search( 'add-' . self::ORGANIZER_POST_TYPE, $current_hidden_boxes ) )
+						unset( $current_hidden_boxes[$array_key] );
+					if ( $array_key = array_search( 'add-' . self::TAXONOMY, $current_hidden_boxes ) )
+						unset( $current_hidden_boxes[$array_key] );
+					
+					update_user_option( $user->ID, 'metaboxhidden_nav-menus', $current_hidden_boxes, true );
+					
+					update_user_option( $user->ID, 'tribe_setDefaultNavMenuBoxes', true, true );
+				}
+			}
+		}
+		
+		public function addLinksToPluginActions( $actions ) {
+			$actions['settings'] = '<a href="' . add_query_arg( array( 'post_type' => self::POSTTYPE, 'page' => 'tribe-events-calendar' ), admin_url( 'edit.php' ) ) .'">' . __('Settings', 'tribe-events-calendar') . '</a>';
+			$actions['tribe-calendar'] = '<a href="' . $this->getLink() .'">' . __('Calendar', 'tribe-events-calendar') . '</a>';
+			return $actions;
+		}
+		
+		public function addHelpAdminMenuItem() {
+    		global $submenu;
+    		$submenu['edit.php?post_type=' . self::POSTTYPE][500] = array( __('Help', 'tribe-events-calendar'), 'manage_options' , add_query_arg( array( 'post_type' => self::POSTTYPE, 'page' => 'tribe-events-calendar', 'tab' => 'help' ), admin_url( 'edit.php' ) ) ); 
+		} 
+		
+		/**
+		 * Filter call that returns the proper link for after a comment is submitted to a recurring event.
+		 *
+		 * @author PaulHughes01
+		 * @since 2.0.8
+		 *
+		 * @param string $content
+		 * @param object $comment the comment object
+		 * @return string the link
+		 */ 
+		public function newCommentLink( $content, $comment ) {
+			if ( class_exists( 'TribeEventsPro' ) && tribe_is_recurring_event( get_the_ID() ) && isset( $_REQUEST['eventDate'] ) ) {
+				$link = trailingslashit( $this->getLink( 'single' ) ) . $_REQUEST['eventDate'] . '#comment-' . $comment->comment_ID;
+			} else {
+				$link = $content;
+			}
+			return $link;
+		}
+		
+		/**
+		 * Adds a hidden field to recurring events comments forms that stores the eventDate.
+		 *
+		 * @author PaulHughes01
+		 * @since 2.0.8
+		 * 
+		 * @return void
+		 */
+		public function addHiddenRecurringField() {
+			echo '<input type="hidden" name="eventDate" value="' . get_query_var( 'eventDate' ) . '" />';
 		}
 
 	} // end TribeEvents class
