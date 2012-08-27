@@ -1,3 +1,6 @@
 [submodule "wp-content/plugins/the-events-calendar"]
 	path = wp-content/plugins/the-events-calendar
 	url = git@github.com:wvega/the-events-calendar.git
+[submodule "wp-content/plugins/wp-pagenavi"]
+	path = wp-content/plugins/wp-pagenavi
+	url = git@github.com:wvega/wp-pagenavi.git
