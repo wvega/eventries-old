@@ -1,0 +1,133 @@
+/*
+Theme Name: Eventries
+Theme URI: http://eventries.com/
+Author: Eventries Inc.
+Author URI: http://eventries.com/
+Description: Eventries Theme
+Version: 0.1
+Tags: events
+*/
+/* Colors
+---------------------------------------------------------------------------- */
+/* green */
+/* another green */
+/* darker green */
+/* red */
+/* purple */
+/* dark blue */
+/* blue */
+/* another blue */
+/* Google Icons
+   http://ssl.gstatic.com/s2/oz/images/sprites/ribbon-nav-common-c4ff9240a2b70f779ed0dd6da60e5b15.png */
+/* Mixins
+---------------------------------------------------------------------------- */
+/* new clearfix */
+.clearfix:after {
+  visibility: hidden;
+  display: block;
+  font-size: 0;
+  content: " ";
+  clear: both;
+  height: 0;
+}
+* html .clearfix {
+  zoom: 1;
+}
+/* IE6 */
+*:first-child + html .clearfix {
+  zoom: 1;
+}
+/* IE7 */
+/* Layout
+---------------------------------------------------------------------------- */
+html,
+body {
+  background: #f0f0f0;
+}
+body {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+/* Article
+---------------------------------------------------------------------------- */
+article {
+  background: #ffffff;
+  box-shadow: rgba(0, 0, 0, 0.25) 0 1px 1px 0;
+  margin-bottom: 20px;
+}
+article header .entry-title,
+article header .entry-title a {
+  text-shadow: 1px 1px 1px #000000;
+  background: #4488bb;
+  color: #ffffff;
+}
+article header .entry-title {
+  font-size: 1.5em;
+  line-height: 1em;
+  padding: 10px;
+}
+article header .entry-title a {
+  text-decoration: none;
+}
+article header .entry-title a:hover {
+  color: #9cbd5a;
+}
+article .entry-thumbnail {
+  background: #ec534d;
+}
+article .entry-thumbnail img {
+  display: block;
+  margin: 0 auto;
+}
+article .entry-meta,
+article .entry-content,
+article .entry-summary {
+  padding: 5px;
+}
+article .entry-meta {
+  padding-top: 5px;
+  padding-bottom: 0;
+}
+article .entry-meta .event-passed {
+  margin-top: 5px;
+  margin-bottom: 8px;
+}
+article .entry-meta .row {
+  margin-left: 0;
+}
+/* Events
+---------------------------------------------------------------------------- */
+article.type-tribe_events .event-meta-container {
+  border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  background: #F4F4F4;
+  border: 1px solid #DDD;
+  padding: 8px 14px;
+}
+article.type-tribe_events .event-meta-container .column {
+  float: left;
+  padding: 0 4% 0 0;
+  width: 46%;
+}
+article.type-tribe_events .event-meta-container dl {
+  margin: 4px 0 0px;
+}
+article.type-tribe_events .event-meta-container dl dt {
+  clear: left;
+  float: left;
+  font-weight: bold;
+  width: 80px;
+}
+article.type-tribe_events .event-meta-container dl dd {
+  margin: 0 0 10px 90px;
+}
+/* Right Hand Widgets
+---------------------------------------------------------------------------- */
+.widget-list {
+  list-style-type: none;
+  margin: 0;
+}
+.widget-list .widget_search input[type=text] {
+  margin-bottom: 0;
+}

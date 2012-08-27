@@ -1,0 +1,188 @@
+/*
+Theme Name: Eventries
+Theme URI: http://eventries.com/
+Author: Eventries Inc.
+Author URI: http://eventries.com/
+Description: Eventries Theme
+Version: 0.1
+Tags: events
+*/
+
+
+/* Colors
+---------------------------------------------------------------------------- */
+
+@page-background: #F0F0F0;
+
+@entry-background: #FFF;
+
+@entry-thumbnail-background: #EC534D;
+
+@entry-title-background: #9CBD5A; /* green */
+@entry-title-background: #27D558; /* another green */
+@entry-title-background: #758E43; /* darker green */
+
+@entry-title-background: #EC534D; /* red */
+
+@entry-title-background: #A772AE; /* purple */
+
+@entry-title-background: #4E7091; /* dark blue */
+@entry-title-background: #4488BB; /* blue */
+
+@entry-title-color: #FFF;
+
+@entry-title-hover-color: #6C9AE9; /* another blue */
+@entry-title-hover-color: #9CBD5A;
+
+/* Google Icons
+   http://ssl.gstatic.com/s2/oz/images/sprites/ribbon-nav-common-c4ff9240a2b70f779ed0dd6da60e5b15.png */
+
+/* Mixins
+---------------------------------------------------------------------------- */
+
+/* new clearfix */
+.clearfix:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+}
+* html .clearfix             { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+
+.rounded-corners (@radius: 5px) {
+  border-radius: @radius;
+  -webkit-border-radius: @radius;
+  -moz-border-radius: @radius;
+}
+
+
+/* Layout
+---------------------------------------------------------------------------- */
+
+html, body {
+    background: @page-background;
+}
+body {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+
+/* Article
+---------------------------------------------------------------------------- */
+
+article {
+    background: @entry-background;
+    box-shadow: rgba(0, 0, 0, 0.25) 0 1px 1px 0;
+    margin-bottom: 20px;
+
+    header {
+        .entry-title-style(@shadow: #000) {
+            text-shadow: 1px 1px 1px @shadow;
+        }
+
+        .entry-title, .entry-title a {
+            .entry-title-style(#000);
+            background: @entry-title-background;
+            color: @entry-title-color;
+        }
+        .entry-title {
+            font-size: 1.5em;
+            line-height: 1em;
+            padding: 10px;
+
+            a {
+                text-decoration: none;
+            }
+            a:hover {
+                color: @entry-title-hover-color;
+            }
+        }
+    }
+
+    .entry-thumbnail {
+        background: @entry-thumbnail-background;
+
+        img {
+            display: block;
+            margin: 0 auto;
+        }
+    }
+
+    .entry-meta, .entry-content, .entry-summary {
+        padding: 5px;
+    }
+
+    .entry-meta {
+        padding-top: 5px;
+        padding-bottom: 0;
+
+        .event-passed {
+            margin-top: 5px;
+            margin-bottom: 8px;
+        }
+        .row {
+            margin-left: 0;
+        }
+    }
+}
+
+
+
+/* Events
+---------------------------------------------------------------------------- */
+
+article.type-tribe_events {
+    .event-passed { }
+
+    .event-meta-container {
+        .rounded-corners(4px);
+        background: #F4F4F4;
+        border: 1px solid #DDD;
+        padding: 8px 14px;
+
+        .column {
+            float: left;
+            padding: 0 4% 0 0;
+            width: 46%;
+        }
+
+        dl {
+            margin: 4px 0 0px;
+
+            dt {
+                clear: left;
+                float: left;
+                font-weight: bold;
+                width: 80px
+            }
+
+            dd {
+                // margin: 0;
+                margin: 0 0 10px 90px;
+            }
+        }
+    }
+}
+
+
+/* Right Hand Widgets
+---------------------------------------------------------------------------- */
+
+.widget-list {
+    list-style-type: none;
+    margin: 0;
+
+    .widget {
+
+    }
+
+    .widget_search {
+        input[type=text] {
+            margin-bottom: 0;
+        }
+    }
+}
