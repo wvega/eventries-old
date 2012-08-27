@@ -30,7 +30,11 @@ class EventriesTheme {
     private function registerSidebars() {
         register_sidebar(array(
             'id' => 'main-right-sidebar',
-            'name' => 'Main Right Sidebar'
+            'name' => 'Main Right Sidebar',
+            'before_title' => '<h2 class="widget-title">',
+            'after_title' => '</h2><div class="widget-content">',
+            'before_widget' => '<li id="%1$s" class="widget %2$s">',
+            'after_widget' => '</div></li>'
         ));
     }
 }

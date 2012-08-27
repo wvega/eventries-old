@@ -34,6 +34,8 @@ Tags: events
 @entry-title-hover-color: #6C9AE9; /* another blue */
 @entry-title-hover-color: #9CBD5A;
 
+@widget-title-background: #9CBD5A;
+
 /* Google Icons
    http://ssl.gstatic.com/s2/oz/images/sprites/ribbon-nav-common-c4ff9240a2b70f779ed0dd6da60e5b15.png */
 
@@ -58,6 +60,21 @@ Tags: events
   -moz-border-radius: @radius;
 }
 
+.box() {
+    background: @entry-background;
+    box-shadow: rgba(0, 0, 0, 0.25) 0 1px 1px 0;
+    margin-bottom: 20px;
+}
+.box-title() {
+    background: @entry-title-background;
+    color: @entry-title-color;
+    font-size: 1.5em;
+    line-height: 1em;
+    margin: 0;
+    padding: 10px;
+    text-shadow: 1px 1px 1px #000;
+}
+
 
 /* Layout
 ---------------------------------------------------------------------------- */
@@ -75,27 +92,16 @@ body {
 ---------------------------------------------------------------------------- */
 
 article {
-    background: @entry-background;
-    box-shadow: rgba(0, 0, 0, 0.25) 0 1px 1px 0;
-    margin-bottom: 20px;
+    .box();
 
     header {
-        .entry-title-style(@shadow: #000) {
-            text-shadow: 1px 1px 1px @shadow;
-        }
-
-        .entry-title, .entry-title a {
-            .entry-title-style(#000);
-            background: @entry-title-background;
-            color: @entry-title-color;
-        }
         .entry-title {
-            font-size: 1.5em;
-            line-height: 1em;
-            padding: 10px;
+            .box-title();
 
             a {
+                color: @entry-title-color;
                 text-decoration: none;
+                text-shadow: 1px 1px 1px #000;
             }
             a:hover {
                 color: @entry-title-hover-color;
@@ -177,12 +183,35 @@ article.type-tribe_events {
     margin: 0;
 
     .widget {
+        .box();
 
+        .widget-title {
+            .box-title();
+
+            background: @widget-title-background;
+            color: @entry-title-color;
+        }
+        .widget-content {
+            padding: 10px;
+
+            :last-child {
+                margin-bottom: 0;
+            }
+        }
     }
 
     .widget_search {
         input[type=text] {
+            margin-left: 7px;
             margin-bottom: 0;
+        }
+    }
+
+    .eventsListWidget {
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
         }
     }
 }

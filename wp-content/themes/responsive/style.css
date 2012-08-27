@@ -55,19 +55,19 @@ article {
   box-shadow: rgba(0, 0, 0, 0.25) 0 1px 1px 0;
   margin-bottom: 20px;
 }
-article header .entry-title,
-article header .entry-title a {
-  text-shadow: 1px 1px 1px #000000;
+article header .entry-title {
   background: #4488bb;
   color: #ffffff;
-}
-article header .entry-title {
   font-size: 1.5em;
   line-height: 1em;
+  margin: 0;
   padding: 10px;
+  text-shadow: 1px 1px 1px #000;
 }
 article header .entry-title a {
+  color: #ffffff;
   text-decoration: none;
+  text-shadow: 1px 1px 1px #000;
 }
 article header .entry-title a:hover {
   color: #9cbd5a;
@@ -128,6 +128,34 @@ article.type-tribe_events .event-meta-container dl dd {
   list-style-type: none;
   margin: 0;
 }
-.widget-list .widget_search input[type=text] {
+.widget-list .widget {
+  background: #ffffff;
+  box-shadow: rgba(0, 0, 0, 0.25) 0 1px 1px 0;
+  margin-bottom: 20px;
+}
+.widget-list .widget .widget-title {
+  background: #4488bb;
+  color: #ffffff;
+  font-size: 1.5em;
+  line-height: 1em;
+  margin: 0;
+  padding: 10px;
+  text-shadow: 1px 1px 1px #000;
+  background: #9cbd5a;
+  color: #ffffff;
+}
+.widget-list .widget .widget-content {
+  padding: 10px;
+}
+.widget-list .widget .widget-content :last-child {
   margin-bottom: 0;
+}
+.widget-list .widget_search input[type=text] {
+  margin-left: 7px;
+  margin-bottom: 0;
+}
+.widget-list .eventsListWidget ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
 }
