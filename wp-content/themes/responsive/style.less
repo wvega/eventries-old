@@ -21,13 +21,11 @@ Tags: events
 @entry-title-background: #9CBD5A; /* green */
 @entry-title-background: #27D558; /* another green */
 @entry-title-background: #758E43; /* darker green */
-
 @entry-title-background: #EC534D; /* red */
-
 @entry-title-background: #A772AE; /* purple */
-
 @entry-title-background: #4E7091; /* dark blue */
 @entry-title-background: #4488BB; /* blue */
+@entry-title-background: #222;
 
 @entry-title-color: #FFF;
 
@@ -41,18 +39,6 @@ Tags: events
 
 /* Mixins
 ---------------------------------------------------------------------------- */
-
-/* new clearfix */
-.clearfix:after {
-    visibility: hidden;
-    display: block;
-    font-size: 0;
-    content: " ";
-    clear: both;
-    height: 0;
-}
-* html .clearfix             { zoom: 1; } /* IE6 */
-*:first-child+html .clearfix { zoom: 1; } /* IE7 */
 
 .rounded-corners (@radius: 5px) {
   border-radius: @radius;
@@ -68,10 +54,11 @@ Tags: events
 .box-title() {
     background: @entry-title-background;
     color: @entry-title-color;
-    font-size: 1.5em;
+    font-size: 1.2em;
+    font-weight: weight;
     line-height: 1em;
     margin: 0;
-    padding: 10px;
+    padding: 7px;
     text-shadow: 1px 1px 1px #000;
 }
 
@@ -83,25 +70,95 @@ html, body {
     background: @page-background;
 }
 body {
-    padding-left: 5px;
-    padding-right: 5px;
+}
+
+#primary-inner {
+    position: relative;
+}
+
+/* Header
+---------------------------------------------------------------------------- */
+
+header {
+    .navbar {
+        .navbar-inner {
+            .rounded-corners(0);
+
+            background-color: #464646;
+            background-image: -moz-linear-gradient(center top , #464646, #343434);
+            min-height: 60px;
+
+            .brand {
+                font-family: 'PT Mono', sans-serif;
+                font-family: 'Press Start 2P', cursive;
+                font-family: 'VT323', cursive;
+                font-family: 'Lekton', sans-serif;
+                font-family: 'Anonymous Pro', sans-serif;
+
+                font-family: 'Economica', sans-serif;
+                font-family: 'Homenaje', sans-serif;
+                font-family: 'Oregano', cursive;
+                font-family: 'Gochi Hand', cursive;
+                font-family: 'Gloria Hallelujah', cursive;
+                font-family: 'Covered By Your Grace', cursive;
+
+                color: #DDD;
+                padding-top: 20px;
+                padding-bottom: 20px;
+
+                &:hover {
+                    color: #FFF;
+                }
+            }
+
+            .nav {
+                li a {
+                    padding-top: 20px;
+                    padding-bottom: 20px;
+                }
+            }
+
+            .navbar-form {
+                padding: 10px 0;
+            }
+        }
+    }
 }
 
 
 /* Article
 ---------------------------------------------------------------------------- */
 
+.article-wrapper {
+    padding: 0 1% 15px;
+    width: 98%;
+}
+
 article {
     .box();
 
+    margin-bottom: 0px;
+
+    @padding: 15px;
+
     header {
         .entry-title {
-            .box-title();
+
+            background: #fff;
+            border-top: 6px solid #222;
+            color: #111;
+            font-size: 1.5em;
+            font-weight: bold;
+            line-height: 1em;
+            margin: -1px 0 0;
+            padding: 12px @padding 0px;
 
             a {
                 color: @entry-title-color;
+            color: #111;
                 text-decoration: none;
-                text-shadow: 1px 1px 1px #000;
+                // text-shadow: 1px 1px 1px #000;
+
             }
             a:hover {
                 color: @entry-title-hover-color;
@@ -110,7 +167,7 @@ article {
     }
 
     .entry-thumbnail {
-        background: @entry-thumbnail-background;
+        // background: @entry-thumbnail-background;
 
         img {
             display: block;
@@ -119,7 +176,7 @@ article {
     }
 
     .entry-meta, .entry-content, .entry-summary {
-        padding: 5px;
+        padding: @padding;
     }
 
     .entry-meta {
@@ -138,7 +195,7 @@ article {
 
 
 
-/* Events
+/* Event
 ---------------------------------------------------------------------------- */
 
 article.type-tribe_events {
@@ -212,6 +269,118 @@ article.type-tribe_events {
             list-style-type: none;
             margin: 0;
             padding: 0;
+        }
+    }
+}
+
+
+/* Home, Search Results... General Listings
+---------------------------------------------------------------------------- */
+
+.home, .search-results {
+    article.type-tribe_events {
+        header {
+            position: relative;
+
+            .event-meta-start {
+                background: #2B511F;
+                background: #C64748;
+                background: #4E7091;
+
+                background: #9C5B99;
+                border-bottom: 2px solid #222;
+
+                .event-label-start {
+                    background: #C75783;
+                    color: #FFF;
+                    text-transform: uppercase;
+                    text-shadow: 1px 1px 0px #111;
+                }
+                span {
+                    background: #222;
+                    color: #FFF;
+                    float: left;
+                    padding: 3px 10px;
+                }
+            }
+
+            .entry-thumbnail, .entry-thumbnail div {
+                background: #C75783;
+            }
+
+            .entry-thumbnail {
+                a {
+                    text-decoration: none;
+                    text-align: right;
+                    line-height: 1em;
+                }
+            }
+
+            .entry-title-wrapper {
+                background: #C75783;
+                padding: 20px 40px;
+                position: absolute;
+                bottom: 0; right: 0;
+
+                a {
+                    color: #FFF;
+                }
+
+                .entry-title {
+                    background: none;
+                    border: none;
+                    float: right;
+                    font-size: 2.7em;
+                    font-weight: normal;
+                    margin: 0;
+                    padding: 0;
+                    text-transform: uppercase;
+                }
+                .entry-category {
+                    clear: both;
+                    color: #222;
+                    float: right;
+                    font-size: 1.7em;
+                    font-weight: bold;
+                    margin: -0.6em 10px 0 0;
+                }
+            }
+        }
+
+        header.no-thumbnail {
+            .entry-title-wrapper {
+                position: static;
+            }
+        }
+    }
+
+    article.type-tribe_events.blue {
+        header {
+            .event-meta-start {
+                background: #4488BB;
+                .event-label-start {
+                    background: #1790E7;
+                }
+            }
+
+            .entry-thumbnail, .entry-title-wrapper {
+                background: #1790E7;
+            }
+        }
+    }
+
+    article.type-tribe_events.green {
+        header {
+            .event-meta-start {
+                background: #758E43;
+                .event-label-start {
+                    background: #9CBD5A;
+                }
+            }
+
+            .entry-thumbnail, .entry-title-wrapper {
+                background: #9CBD5A;
+            }
         }
     }
 }
